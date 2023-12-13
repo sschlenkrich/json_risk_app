@@ -89,16 +89,16 @@ app.controller('main_ctrl', ['$scope', '$http', function($scope, $http) { // Con
 	};
 
 	$scope.load_local=function(data){
-		if (data) $scope.local_results=data.results;
+		if (data) $scope.local_results=data;
 		if (!$scope.local_results) return null;
 		let aggr=new jr_aggregator($scope.spec.grouping);
-		aggr.append($scope.local_results);
-		$scope.update_results(aggr.results);
-		if (!data.scenarios.length) return null;
-		$scope.meta.scenarios=['Base'];
-		for (let i=0;i<data.scenarios.length;i++){
-			$scope.meta.scenarios.push(data.scenarios[i].name);
-		}
+		aggr.append($scope.local_results.results);
+
+        let res={
+			results: aggr.results,
+			meta: $scope.local_results.meta
+        }
+		$scope.update_results(res);
 	}
 
 	$scope.update_results=function(response){

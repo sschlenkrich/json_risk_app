@@ -32,6 +32,10 @@ parentPort.on('message', function(d) {
 		var item;	
 		while (d.instruments.length>0){
 			let instrument=d.instruments.pop();
+
+            // ensure id is a string
+            instrument.id="" + (instrument.id || "undefined");
+
 			try{
                 // instrument mapping
                 for (let j=0;j<modules.length;j++){
@@ -46,7 +50,7 @@ parentPort.on('message', function(d) {
 
 				// run generic JSON risk simulation
 				item=JsonRisk.simulation(instrument,modules);
-				item.id=""+instrument.id;
+				item.id=instrument.id;
 				res.push(item);
 			}catch(ex){
 				res.push({id: instrument.id, error: true, msg: ex.message});

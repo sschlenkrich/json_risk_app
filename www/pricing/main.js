@@ -428,12 +428,15 @@ app.controller('main_ctrl', ['$scope', function($scope) { // Controller für ind
 
     /*  I.ii. tab results  */
     $scope.open_report = function() {
+        // prepare data as returned by results api
+		let data={
+			results: JSON.parse(JSON.stringify($scope.res)),
+			meta: {
+                scenario_groups: [$scope.scenario_group]
+            }
+		};
         report = window.open('/reports', '_blank');
         report.addEventListener('load', function(event) {
-			let data={
-				results: JSON.parse(JSON.stringify($scope.res)),
-				scenarios: $scope.scenario_group
-			}
             report.angular.element(document.body).scope().load_local(data);
         });
     }

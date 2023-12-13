@@ -29,6 +29,9 @@ onmessage = function(e) {
 			return 0;
 		}
 
+        // ensure id is a string
+        d.instrument.id="" + (d.instrument.id || "undefined");
+
 		// call instrument_mapping instructions from all modules
 		try{
 			for (let j=0;j<modules.length;j++){
@@ -47,7 +50,7 @@ onmessage = function(e) {
 		try{
 			// run generic JSON risk simulation
 			var res=JsonRisk.simulation(d.instrument,modules);
-            res.id=""+instrument.id;
+            res.id=d.instrument.id;
 			postMessage({res: res});
 		}catch(ex){
 			postMessage({error: true, msg: ex.message, id: d.instrument.id});
