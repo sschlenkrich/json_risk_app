@@ -1,0 +1,530 @@
+<!doctype html>
+<html lang="en">
+	<head>
+    	<meta charset="utf-8">
+    	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    	<meta name="description" content="">
+    	<meta name="author" content="">
+    	<link rel="icon" href="/assets/images/favicon.png">
+    	<title>JSON risk - pricing</title>
+    	<!-- Bootstrap core CSS -->
+    	<link href="/assets/css/bootstrap.min.css" rel="stylesheet">
+    	<!-- Custom styles for this template -->
+    	<link href="/assets/css/dashboard.css" rel="stylesheet">
+		<link href="/assets/css/modal.css" rel="stylesheet">
+    	<!-- Custom styles for Apps -->
+    	<link rel="stylesheet" href="/assets/css/expanded_own_bootstrap_css.css">
+    	<!-- angular js-->
+		<script src="/assets/js/angular.min.js"></script>
+		<!-- Papa Parse -->
+		<script src="/assets/js/papaparse.min.js"></script>	
+		<!-- JSON risk -->
+		<script src="/assets/js/json_risk.js"></script>	
+		<!-- PAKO -->
+		<script src="/assets/js/pako.min.js"></script>	
+		<!-- Chart -->
+		<script src="/assets/js/Chart.min.js"></script>
+		<!-- JSONRisk JavaScript -->
+		<script src="/assets/js/login.js"></script>
+  	</head>
+  	<body ng-app="riskapp" ng-controller="main_ctrl">
+    	<nav class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0">
+      		<a class="navbar-brand col-sm-3 col-md-2 mr-0" href="/">
+    			<img src="/assets/images/favicon.png" width="25" height="25" class="d-inline-block align-top" alt="">
+    			JSON risk
+  			</a>
+			<span class="navbar-text text-light ml-2 mr-auto">Portfolio Pricing</span>
+			<span id="jrloginstatus" class="navbar-text text-light mr-2 ml-auto"></span>
+    	</nav>   
+    	<div class="container-fluid">
+			<div class="row">     	
+     			<div class="col-md-2"> <!--Erste Spalte-->
+					<!--Navigation-->     
+        			<nav class="col-md-2 d-none d-md-block bg-light sidebar">
+          				<div class="sidebar-sticky"> 
+            				<ul class="nav navbar-nav flex-column px-3 mb-1"  id="menulist"> 
+              					<li class="nav-item" ng-class="{active: display.tab==='portfolio'}">
+                					<a class="nav-link" id="pills-pf-tab" href="#" ng-click="display.tab='portfolio'">
+                						<span data-feather="file"></span>Portfolio <span class="badge badge-primary">{{portfolio.length}}</span>
+                					</a> 
+              					</li>
+              					<li class="nav-item" ng-class="{active: display.tab==='params'}">
+                 					<a class="nav-link" id="pills-params-tab" href="#" ng-click="display.tab='params'">
+                 						<span data-feather="aperture"></span>Parameters <span class="badge badge-primary" >{{params_count}}</span>
+                					</a>
+              					</li>
+              					<li class="nav-item" ng-class="{active: display.tab==='scenarios'}">
+                 					<a class="nav-link" id="pills-params-tab" href="#" ng-click="display.tab='scenarios'">
+                 						<span data-feather="zap"></span>Scenarios <span class="badge badge-primary">{{scenario_group.length}}</span>
+                					</a>
+              					</li>
+              					<li class="nav-item" ng-class="{active: display.tab==='results'}">           
+                 					<a class="nav-link" id="pills-res-tab" href="#" ng-click="display.tab='results'">
+                 						<span data-feather="bar-chart-2"></span>Results  <span class="badge badge-primary" ng-if="busy">running</span><span class="badge badge-primary" ng-if="!busy && res">completed</span>
+                					</a>
+              					</li>
+            				</ul>           
+            				<h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+              					<span>Documentation</span>
+            				</h6>
+            				<ul class="navbar-nav flex-column px-3 mb-1" id="docs">
+			                  <li class="nav-item">
+                                <a target="_blank" class="nav-link" href="/docs/Pricing.md">
+                                  <span data-feather="file-text"></span>
+					                Pricing                </a>
+                              </li>
+            				</ul>  
+          				</div>
+       				</nav><!--Navigation Ende-->   							
+        		</div><!--Erste Spalte-->	
+       			<div class="col-md-10 px-3 mt-4 mb-1">  <!--Zweite Spalte-->
+				<!--PORTFOLIO-->
+ 					<div id="pills-portfolio" ng-if="display.tab==='portfolio'">
+                		<div class="alert alert-warning" role="alert" ng-if="portfolio===null">
+                  			<h4 class="alert-heading">No Portfolio present.</h4>
+                  			<p> Import portfolio from file or server.</p>
+                  			<hr>
+                  			<div class="btn-toolbar mb-2 mb-md-0">
+                    			<div class="btn-group mr-2">
+                        			<button type="button" class="btn btn-sm btn-outline-secondary" ng-click="create()">Create instrument</button>
+                        			<button type="button" class="btn btn-sm btn-outline-secondary" ng-click="import_file('csv','portfolio')">Import (csv)</button>
+                        			<button type="button" class="btn btn-sm btn-outline-secondary" ng-click="import_file('json','portfolio')">Import (json)</button>
+                    			</div>   	
+                    			<div class="btn-group mr-2">
+                  					<div class="input-group" ng-if="available_portfolio_dates.list!==null">
+										<select class="custom-select" ng-options="value for value in available_portfolio_dates.list" ng-model="available_portfolio_dates.selection" ng-change="load_portfolios()">
+											<option value="" selected>Choose Date...</option>
+										</select>
+										<select class="custom-select" ng-options="value.name for value in available_portfolios.list" ng-model="available_portfolios.selection">
+											<option value="" selected>Choose Portfolio...</option>
+										</select>
+									</div>
+									<button type="button" class="btn btn-sm btn-outline-secondary" ng-click="load_portfolio()">Load portfolio</button>								
+								</div>                    			                			
+                  			</div>                			
+                		</div><!--Alert Warning-->
+                		<div class="alert alert-success" role="alert" ng-if="portfolio!==null">
+                  			<h4 class="alert-heading">Portfolio</span></h4>
+                  			<hr>
+                  			<div class="btn-toolbar mb-2 mb-md-0">
+                    			<div class="btn-group mr-2">
+                        			<button type="button" class="btn btn-sm btn-outline-secondary" ng-click="create()">Create instrument</button>                        
+                        			<button type="button" class="btn btn-sm btn-outline-secondary" ng-click="import_file('csv','portfolio')">Import more (csv)</button>
+                        			<button type="button" class="btn btn-sm btn-outline-secondary" ng-click="import_file('json','portfolio')">Import more (json)</button>
+                        			<button type="button" class="btn btn-sm btn-outline-secondary" ng-click="delete_pf()">Clear</button>
+                        			<button type="button" class="btn btn-sm btn-outline-secondary" ng-click="export_portfolio('json')">Export json</button>
+                        			<button type="button" class="btn btn-sm btn-outline-secondary" ng-click="export_portfolio('csv')">Export csv</button>
+                    			</div>	
+                    			<div class="btn-group ml-2">
+                        			<input ng-model="filter.text" placeholder="filter portfolio" class="form-control input-sm input-outline-secondary">
+                        			<button type="button" class="btn btn-sm btn-outline-secondary" ng-click="filter.text='';" ng-if="filter.text!==''">Clear filter</button>
+                    			</div>
+                  			</div>
+                		</div><!--Alert Success 1-->
+
+						<!-- Editor -->
+						<div class="modal jrmodal" ng-if="editor.json!==null" tabindex="-1">
+						  <div class="modal-dialog modal-lg">
+							<div class="modal-content">
+							  <div class="modal-header">
+								<h5 class="modal-title">View and edit</h5>
+							  </div>
+							  <div class="modal-body">
+								<textarea ng-model="editor.json" class="form-control input-sm input-outline-secondary mb-1" rows="12"></textarea>
+								
+								<strong ng-if="!editor.valid">Invalid JSON:</strong>                  
+								<p ng-if="!editor.valid">{{editor.msg}}</p>
+							  </div>
+							  <div class="modal-footer">
+								<button type="button" class="btn btn-sm btn-primary" ng-click="save_instrument()" ng-if="editor.index>=0 && editor.valid">Save</button>
+								<button type="button" class="btn btn-sm btn-primary" ng-click="add_as_new()" ng-if="editor.valid">Add as new item</button>
+								<button type="button" class="btn btn-sm btn-secondary" ng-click="cancel_editor()">Cancel</button>
+							  </div>
+							</div>
+						  </div>
+						</div>
+
+                		<div class="alert alert-success" role="alert" ng-if="busy">
+                 			<h4 class="alert-heading" >Calculations running...</h4>   
+                		</div>
+                		<div class="table-responsive">
+                        	<table ng-if="portfolio!==null && !busy" class="table table-responsive table-hover table-sm table-bordered">
+								<thead class="thead-light">
+                            		<tr>
+                              			<th scope="col">Actions</th>
+                              			<th scope="col">Index</th>
+                              			<th scope="col">ID</th>
+                              			<th scope="col">Type</th>
+                              			<th scope="col">Sub portfolio</th>
+                              			<th scope="col">Notional</th>
+                              			<th scope="col">Quantity</th>
+                              			<th scope="col">Market value</th>
+                              			<th scope="col">Currency</th>
+                              			<th scope="col">Maturity</th>
+                              			<th scope="col">Tenor</th>
+                              			<th scope="col">Fixed rate</th>
+                            		</tr>
+                          		</thead>
+                          		<tbody>
+                            		<tr ng-repeat="x in portfolio | filter:filter.text | limitTo: 250">
+                               			<th scope="row">
+                                    		<div class="btn-group mr-2">
+                                        		<button type="button" class="btn btn-sm btn-link" ng-click="view(x)">View</button>                                        
+                                        		<button type="button" class="btn btn-sm btn-link" ng-click="edit(x)">Edit</button>
+                                        		<button type="button" class="btn btn-sm btn-link" ng-click="remove(x)">Remove</button>
+												<button type="button" class="btn btn-sm btn-link" ng-click="analyse(x)">Analyse</button>
+                                    		</div>
+                              			</th>
+                              			<th scope="row">{{$index}}</th>
+                              			<td>{{x.id}}</td>
+                              			<td><span class="badge badge-primary">{{x.type}}</span></td>
+                              			<td>{{x.sub_portfolio}}</td>
+                              			<td class="text-right">{{x.notional | number:2}}</td>                    
+                              			<td>{{x.quantity}}</td>
+                              			<td class="text-right">{{x.market_value | number:2}}</td>
+                              			<td>{{x.currency}}</td>
+                              			<td>{{x.maturity | date:'dd.MM.yyyy'}}</td>
+                              			<td>{{x.tenor}}</td>
+                              			<td>{{x.fixed_rate * 100 | number:4}}{{x.fixed_rate ? "%" : ""}}</td>  
+                            		</tr>
+								</tbody>
+							</table>
+						</div>              
+          			</div>
+          			<!--PARAMETERS-->          
+          			<div id="pills-params" ng-if="display.tab=='params'">
+          				<div class="alert alert-success" role="alert">
+							<h4 class="alert-heading">Parameters</h4>
+							<hr>
+							<div class="btn-toolbar mb-2 mb-md-0">
+								<div class="btn-group mr-2">
+									<button type="button" class="btn btn-sm btn-outline-secondary" ng-click="delete_params()">Clear all</button>
+                    				<button type="button" class="btn btn-sm btn-outline-secondary" ng-click="import_file('json','params')">Import (json)</button>
+									<button type="button" class="btn btn-sm btn-outline-secondary" ng-click="export_params()">Export</button>
+								</div>								
+								<div class="btn-group mr-2">
+									<div class="input-group" ng-if="available_params.list!==null">
+										<select class="custom-select" ng-options="value group by value.substring(0,10) for value in available_params.list" ng-model="available_params.selection">
+											<option value="" selected>Choose param set...</option>
+										</select>
+										<button type="button" class="btn btn-sm btn-outline-secondary" ng-click="load_params()">Load Params</button>
+									</div>
+								</div>								
+							</div>	
+                		</div>
+        				<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                			<h1 class="h2">Valuation date</h1>
+                			<div class="btn-toolbar mb-2 mb-md-0">
+                  				<div class="btn-group mr-2">
+                        			<input ng-model="params.valuation_date" class="form-control input-sm input-outline-secondary">
+                  				</div>
+                			</div>
+        				</div>  
+        				<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                			<h1 class="h2">Scalars</h1>
+                			<div class="btn-toolbar mb-2 mb-md-0">
+                  				<div class="btn-group mr-2">
+                    				<button type="button" class="btn btn-sm btn-outline-secondary" ng-click="import_file('csv','scalar')">Import new</button>
+                    				<button type="button" class="btn btn-sm btn-outline-secondary" ng-click="params.scalars={};count_params();delete_results();">Clear all</button>
+                  				</div>
+                			</div>               
+        				</div>
+        				<div class="table-responsive">
+                  			<table class="table table-responsive table-hover table-sm table-bordered">
+                          		<thead class="thead-light">
+                            		<tr>
+                              			<th scope="col">Name</th>
+                              			<th scope="col">Type</th>
+										<th scope="col">Tags</th>
+                              			<th scope="col">Scenarios</th>
+                              			<th scope="col">Actions</th>
+                            		</tr>
+                          		</thead>
+                          		<tbody>
+                            		<tr ng-repeat="(key, value) in params.scalars">
+                              			<th scope="row">{{key}}</th>
+                              			<td><span class="badge badge-secondary">{{value.type}}</span></td>
+										<td><span class="badge badge-primary" ng-repeat="tag in value.tags">{{tag}}</span></td> 
+                              			<td>{{count_scenarios_scalar(value)}}</td> 
+                               			<th scope="row">
+                                    		<div class="btn-group mr-2">
+                                        		<button type="button" class="btn btn-sm btn-link" ng-click="remove_parameter(key,value, 'scalars')">Remove</button>
+                                    		</div>
+                              			</th>
+                            		</tr>
+                          		</tbody>
+							</table>
+						</div>                                         
+        				<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                			<h1 class="h2">Curves</h1>
+                			<div class="btn-toolbar mb-2 mb-md-0">
+                  				<div class="btn-group mr-2">
+                    				<button type="button" class="btn btn-sm btn-outline-secondary" ng-click="import_file('csv','curve')">Import new</button>
+                    				<button type="button" class="btn btn-sm btn-outline-secondary" ng-click="params.curves={};count_params();delete_results();">Clear all</button>
+                  				</div>
+                			</div>                
+        				</div>
+        				<div class="table-responsive">
+                  			<table class="table table-responsive table-hover table-sm table-bordered">
+                          		<thead class="thead-light">
+                            		<tr>
+                              			<th scope="col">Name</th>
+                              			<th scope="col">Type</th>
+										<th scope="col">Tags</th>
+                              			<th scope="col">Support Points</th>
+                              			<th scope="col">Scenarios</th>
+                              			<th scope="col">Actions</th>
+                            		</tr>
+                          		</thead>
+                          		<tbody>
+                            		<tr ng-repeat="(key, value) in params.curves">
+                              			<th scope="row">{{key}}</th>
+                              			<td><span class="badge badge-secondary">{{value.type}}</span></td>
+										<td><span class="badge badge-primary" ng-repeat="tag in value.tags">{{tag}}</span></td> 
+                              			<td>{{(value.times || value.days || value.dates || value.labels).length}}</td>                  
+                              			<td>{{count_scenarios_curve(value)}}</td> 
+                              			<th scope="row">
+                                    		<div class="btn-group mr-2">
+                                        		<button type="button" class="btn btn-sm btn-link" ng-click="remove_parameter(key,value, 'curves')">Remove</button>
+                                    		</div>		
+                              			</th> 
+                            		</tr>
+                          		</tbody>
+							</table>
+						</div>      
+        				<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                			<h1 class="h2">Surfaces  <span class="badge badge-danger">{{upload_error}}</span></h1>
+                			<div class="btn-toolbar mb-2 mb-md-0">
+                  				<div class="btn-group mr-2">
+                    				<button type="button" class="btn btn-sm btn-outline-secondary" ng-click="import_file('csv','surface');upload_error=null">Import new</button>
+                    				<button type="button" class="btn btn-sm btn-outline-secondary" ng-click="params.surfaces={};upload_error=null;count_params();delete_results();">Clear all</button>
+                  				</div>
+                			</div>
+        				</div>
+                		<div class="table-responsive">
+                    		<table class="table table-responsive table-hover table-sm table-bordered">
+                        		<thead class="thead-light">
+                            		<tr>
+                              			<th scope="col">Name</th>
+                              			<th scope="col">Type</th>
+										<th scope="col">Tags</th>
+                              			<th scope="col">Expiries</th>
+                              			<th scope="col">Terms</th>
+                              			<th scope="col">Scenarios</th>
+                              			<th scope="col">Actions</th>
+                            		</tr>
+                          		</thead>
+                          		<tbody>
+                            		<tr ng-repeat="(key, value) in params.surfaces">                           
+                              			<th scope="row">{{key}}</th>
+                              			<td><span class="badge badge-secondary">{{value.type}}</span></td>
+										<td><span class="badge badge-primary" ng-repeat="tag in value.tags">{{tag}}</span></td> 
+                              			<td>{{value.expiries.length || value.labels_expiry.length}}</td>
+                              			<td>{{value.terms.length || value.labels_term.length}}</td>
+                              			<td>{{count_scenarios_surface(value)}}</td>   
+                              			<th scope="row">
+                                    		<div class="btn-group mr-2">
+                                        		<button type="button" class="btn btn-sm btn-link" ng-click="remove_parameter(key,value, 'surfaces')">Remove</button>
+                                    		</div>		
+                              			</th>                                     
+                            		</tr>
+                          		</tbody>
+							</table>                
+                		</div>               
+                		<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                			<h1 class="h2">Calendars</h1>
+                				<div class="btn-toolbar mb-2 mb-md-0">
+                  					<div class="btn-group mr-2">
+                    					<button type="button" class="btn btn-sm btn-outline-secondary" ng-click="import_file('csv','calendar')">Import new</button>
+                    					<button type="button" class="btn btn-sm btn-outline-secondary" ng-click="params.calendars={};count_params();delete_results();">Clear all</button>
+                  					</div>
+                				</div>
+        				</div>               
+             			<div class="table-responsive">
+                  			<table class="table table-responsive table-hover table-sm table-bordered">
+                          		<thead class="thead-light">
+                            		<tr>
+                              			<th scope="col">Name</th>
+                              			<th scope="col">Days</th>
+                              			<th scope="col">Actions</th>
+                            		</tr>
+                          		</thead>
+                          		<tbody>
+                            		<tr ng-repeat="(key, value) in params.calendars">
+                              			<th scope="row">{{key}}</th>
+                              			<td><span class="badge badge-primary">{{value.dates.length}}</span></td>        
+                               			<th scope="row">
+                                    		<div class="btn-group mr-2">
+                                        		<button type="button" class="btn btn-sm btn-link" ng-click="remove_parameter(key,value, 'calendars')">Remove</button>
+                                    		</div>		
+                              			</th>
+                            		</tr>
+                          		</tbody>
+                    		</table>
+        				</div>                                    
+					</div>
+					<!--SCENARIOS-->          
+          			<div id="pills-scenarios" ng-if="display.tab=='scenarios'">
+          				<div class="alert alert-success" role="alert">
+							<h4 class="alert-heading">Scenarios</h4>
+							<hr>
+							<div class="btn-toolbar mb-2 mb-md-0">
+								<div class="btn-group mr-2">
+									<button type="button" class="btn btn-sm btn-outline-secondary" ng-click="delete_scenarios()">Clear</button>                    				
+									<button type="button" class="btn btn-sm btn-outline-secondary" ng-click="import_file('json','scenarios')">Import (json)</button>
+								</div>															
+								<div class="btn-group mr-2">
+									<div class="input-group" ng-if="available_scenarios.list!==null">
+										<select class="custom-select" ng-options="value for value in available_scenarios.list" ng-model="available_scenarios.selection">
+											<option value="" selected>Choose scenario group...</option>
+										</select>
+										<button type="button" class="btn btn-sm btn-outline-secondary" ng-click="load_scenarios()">Load Scenarios</button>
+									</div>
+								</div>	
+							</div>
+                		</div>
+
+						<!-- Scenarios -->
+						<div class="row" ng-if="scenario_group.length>0">
+							<div class="col-3">
+								<div class="list-group">
+									<a href="#" class="list-group-item list-group-item-action" ng-repeat="s in scenario_group" ng-click="display.scenario=s" ng-class="{active: s===display.scenario}">{{s.name}}</a>
+								</div>
+							</div>
+							<div class="col-9">
+								
+								<!-- Scenario rules -->
+
+								<div class="list-group" ng-if="null!==display.scenario">
+									<li class="list-group-item list-group-item-action" ng-repeat="r in display.scenario.rules track by $index">
+										Rule {{$index}}
+										<div>
+					    					<div class="d-flex justify-content-between">
+												<span>Risk Factors:
+											</div>
+											<p><span ng-repeat="rf in r.risk_factors" class="badge badge-primary mr-1 px-1">{{rf}}</span></p>
+
+					    					<div class="d-flex justify-content-between">
+												<span>Tags:</span>
+											</div>
+											<p><span ng-repeat="tg in r.tags" class="badge badge-primary mr-1">{{tg}}</span></p>		
+
+					    					<div class="d-flex justify-content-between">
+												<span>Model:</span>
+											</div>
+											<p><span class="badge badge-primary mr-1">{{r.model}}</span></p>		
+	
+					    					<div class="d-flex justify-content-between">
+												<span>Values:</span>
+											</div>
+											
+											<table class="table table-hover table-responsive mt-3">
+												<thead>
+													<tr>
+														<th scope="col">#</th>
+														<th scope="col" ng-repeat="x in r.labels_x track by $index">{{x}}</th>
+													</tr>
+												</thead>
+												<tbody>
+													<tr ng-repeat="y in r.values track by $index">
+														<th scope="row">{{r.labels_y[$index]}}</th>
+														<td ng-repeat="v in y track by $index">{{v}}</td>
+													</tr>
+												</tbody>
+											</table>
+										</div>
+									</li>
+								</div>
+
+							</div>
+						</div>
+					</div>     			
+         		<!--RESULTS-->
+          			<div id="pills-res" ng-show="display.tab=='results'">
+            			<div class="alert alert-warning" role="alert" ng-if="portfolio===null">
+              				<h4 class="alert-heading">No Portfolio present.</h4>
+              				<p> Import portfolio from file or server.</p>
+              				<hr>
+              				<div class="btn-toolbar mb-2 mb-md-0">
+                				<div class="btn-group mr-2">
+                  					<button type="button" class="btn btn-sm btn-outline-secondary" ng-click="import_file('csv','portfolio')">Import (csv)</button>
+                  					<button type="button" class="btn btn-sm btn-outline-secondary" ng-click="import_file('json','portfolio')">Import (json)</button>
+                				</div>
+              				</div>
+            			</div>            	
+                		<div class="alert alert-success" role="alert" ng-if="res || busy">
+                 			<h4 class="alert-heading" ng-if="busy">Calculations running on {{conc | number:0}} parallel execution threads...</h4>
+                 			<h4 class="alert-heading" ng-if="!busy">Calculations completed for {{portfolio.length - analytics.error_count}} of {{portfolio.length}} instruments.</h4>
+                  			<hr>
+                  			<p ng-if="busy">{{portfolio.length-remaining}} of {{portfolio.length}} instruments ({{(remaining/portfolio.length*100) |number:0}}% remaining), Elapsed time: {{calctime | number:2}} seconds.</p>
+                  			<p ng-if="!busy">Present values for {{portfolio.length - analytics.error_count}} instruments were calculated in {{calctime | number:2}} seconds.</p>
+                  			<p ng-if="analytics.error_count>0">Could not price {{analytics.error_count}} instruments due to errors. For more details, see errors box below.</p>
+                  			<div class="btn-toolbar mb-2 mb-md-0">
+                    			<div class="btn-group mr-2">
+                        			<button type="button" class="btn btn-sm btn-outline-secondary" ng-if="busy" ng-click="cancel()">Cancel</button>
+                        			<button type="button" class="btn btn-sm btn-outline-secondary" ng-if="!busy" ng-click="delete_results()">Clear results</button>
+                        			<button type="button" class="btn btn-sm btn-outline-secondary" ng-if="!busy && res[0]!=undefined" ng-click="open_report();">Open report</button>
+                    			</div>
+                  			</div>        
+                		</div>        
+            			<div class="alert alert-warning" role="alert" ng-if="res===null && portfolio!==null && !busy">
+              				<h4 class="alert-heading">No Results yet.</h4>
+              				<p> Perform calculations to obtain results.</p>
+              				<hr>
+              				<div class="btn-toolbar mb-2 mb-md-0">
+                				<div class="btn-group mr-2">
+                  					<button type="button" class="btn btn-sm btn-outline-secondary" ng-click="calculate()">Calculate</button>
+                				</div>
+            				</div>  
+          				</div>
+						<div class="alert alert-warning alert-dismissible" role="alert" ng-if="warnings!==null">
+		  					<button type="button" class="close" ng-click="clear_warnings()" aria-label="Close">
+		    					<span aria-hidden="true">&times;</span>
+		  					</button>
+                  			<h4 class="alert-heading">Warnings <span class="badge badge-primary" ng-if="analytics.warning_count>0">{{analytics.warning_count}}</span></h4>
+                  			<hr>
+                  			<p ng-repeat="x in warnings">Warning on instrument {{x.id}}: {{x.msg}} <span ng-if="x.count>1">[repeats {{x.count}} times]</span> </p>
+                		</div>
+						<div class="alert alert-danger alert-dismissible" role="alert" ng-if="errors!==null">
+		  					<button type="button" class="close" ng-click="clear_errors()" aria-label="Close">
+		    					<span aria-hidden="true">&times;</span>
+		  					</button>
+                  				<h4 class="alert-heading">Errors <span class="badge badge-primary" ng-if="analytics.error_count>0">{{analytics.error_count}}</span></h4>
+                  				<hr>
+                  				<p ng-repeat="x in errors">Error pricing instrument {{x.id}}: {{x.msg}} <span ng-if="x.count>1">[repeats {{x.count}} times]</span> </p>
+                		</div>               
+                		<div class="alert alert-danger alert-dismissible" role="alert" ng-if="analytics.errors_ids!==null">
+		  					<button type="button" class="close" ng-click="clear_errors_ids()" aria-label="Close">
+		    					<span aria-hidden="true">&times;</span>
+		  					</button>
+                  			<h4 class="alert-heading">IDs with Errors <span class="badge badge-primary" ng-if="analytics.error_count>0">{{analytics.error_count}}</span></h4>
+                  			<hr>
+                  			<p>{{analytics.errors_ids}} </p>
+                		</div>    
+					</div>
+ 	
+            	
+            	   				              				
+				</div>    <!--Zweite Spalte-->          				               				   
+        	</div>
+		</div>
+    	<!-- Bootstrap core JavaScript
+    	================================================== -->
+    	<!-- Placed at the end of the document so the pages load faster -->
+    	<script src="/assets/js/jquery-3.2.1.slim.min.js"></script>
+    	<script src="/assets/js/popper.min.js"></script>
+    	<script src="/assets/js/bootstrap.min.js"></script>	
+    	<!-- Icons -->
+    	<script src="/assets/js/feather.min.js"></script>
+    	<script>
+      		feather.replace()
+    	</script>
+		<script src="main.js"></script>
+		<script src="/assets/js/aggregate.js"></script>
+		<script src="import.js"></script>
+		<script src="export.js"></script>
+  	</body>
+</html>
+
+
+

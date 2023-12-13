@@ -1,0 +1,40 @@
+#!/bin/bash
+
+JR_ROOT="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
+JR_USER=`whoami`
+
+source "$JR_ROOT/res/sh/config.sh"
+
+usage(){
+	echo "Usage: jr_run <INSTANCE> <RUN_NAME>"
+	exit 1
+}
+
+#
+# get instance
+#
+JR_INSTANCE=$1
+
+[ -z $JR_INSTANCE ] && usage
+[[ "$JR_INSTANCE" =~ ^[a-zA-Z0-9_-]+$ ]] || jr_fail "Instance name $JR_INSTANCE is invalid. Can only contain letters, numbers, hyphens and underscores."
+[ -d "$JR_DATADIR/$JR_INSTANCE" ] || jr_fail "Instance $JR_INSTANCE does not exist."
+
+shift
+
+#
+# get run name
+#
+
+RUN_NAME=$(basename $1 '.json')
+
+[ -z $RUN_NAME ] && usage
+[[ "$RUN_NAME" =~ ^[a-zA-Z0-9_-]+$ ]] || jr_fail "Run name $RUN_NAME is invalid. Can only contain letters, numbers, hyphens and underscores."
+[ -f "$JR_DATADIR/$JR_INSTANCE/runs/${RUN_NAME}.json" ] || jr_fail "Run $RUN_NAME does not exist on instance $JR_INSTANCE"
+
+
+#
+# run
+#
+
+exec node "$JR_ROOT/res/js/run.js" "$JR_INSTANCE" "$RUN_NAME"
+

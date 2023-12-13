@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="icon" href="/assets/images/favicon.png">
+
+    <title>JSON risk - analysis</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="/assets/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <link href="/assets/css/dashboard.css" rel="stylesheet">
+
+    <!-- JSONRisk JavaScript -->
+    <script src="/assets/js/login.js"></script>
+
+	<!-- angular js-->
+	<script src="/assets/js/angular.min.js"></script>
+  </head>
+
+  <body ng-app="riskapp" ng-controller="main_ctrl">
+    <nav class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0">
+      <a class="navbar-brand col-3 mr-0" href="/">
+    			<img src="/assets/images/favicon.png" width="25" height="25" class="d-inline-block align-top" alt="">
+    			JSON risk
+	  </a>
+	  <span id="jrloginstatus" class="navbar-text text-light ml-auto"></span>
+
+    </nav>
+
+    <div class="container-fluid">
+      <div class="row vh-100">
+		<div class="col-3 bg-light p-1 overflow-auto h-100">
+			<div class="btn-group btn-group-toggle">
+				<label class="btn btn-outline-secondary" ng-class="{active: editor.json!==''}">
+					<input type="radio" ng-checked="editor.json!==''" ng-click="edit_json();"> Edit JSON
+				</label>
+				<label class="btn btn-outline-secondary" ng-class="{active: editor.json===''}">
+					<input type="radio" ng-checked="editor.json===''" ng-click="edit_fields();"> Edit fields
+				</label>
+			</div>
+			<textarea ng-if="editor.json!==''" ng-model="editor.json" class="form-control input-sm input-outline-secondary ng-pristine ng-valid ng-not-empty ng-touched mt-1" rows="12"></textarea>
+			<button ng-if="editor.json!==''" type="button" class="btn btn-secondary mt-1" ng-click='calculate_with_json()'>Recalc</button>
+
+
+			<div class="form-group row mt-1 mb-0" ng-if="editor.json===''" ng-repeat="f in fields">
+				<label class="col-4 col-form-label col-form-label-sm">{{f}}</label>
+				<div class="col-8">
+				<input type="text" class="form-control form-control-sm" ng-model="instrument[f]" ng-change="calculate();">
+				</div>
+			</div>
+
+
+        </div>
+
+        <main role="main" class="col-9 ml-sm-auto pt-3 px-4 overflow-auto h-100">
+			<!--
+
+			Params and Scenario selection
+
+			-->
+			<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
+				&nbsp;
+				<div class="btn-toolbar mb-2 mb-md-0">							
+					<div class="input-group">
+						<select class="custom-select" ng-options="value for value in params.available" ng-model="params.selection" ng-change="load_params()">
+							<option value="" selected>Choose Parameters...</option>
+						</select>
+						<select class="custom-select" ng-options="value for value in scenarios.available" ng-model="scenarios.selection" ng-change="load_scenarios()">
+							<option value="" selected>Choose Scenarios...</option>
+						</select>
+					</div>
+				</div>	
+			</div>
+
+			<!-- Messages -->
+			<div ng-if="errors.length>0" class="alert alert-danger alert-dismissible show m-1" role="alert">
+				<p ng-repeat="msg in errors track by index"><span data-feather="alert-triangle" class="text-danger mr-1"></span>Error: {{msg}}</p>
+				<button type="button" class="close" ng-click="clear_errors();">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+
+			<div ng-if="warnings.length>0" class="alert alert-warning alert-dismissible show m-1" role="alert">
+				<p ng-repeat="msg in warnings track by index"><span data-feather="alert-triangle" class="text-warning mr-1"></span>Warning: {{msg}}</p>
+				<button type="button" class="close" ng-click="clear_warnings();">
+					<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+
+	
+          <!--<canvas class="my-4" id="chart" width="900" height="380"></canvas>-->
+
+		  <div class="row" ng-if="res.present_value">
+			  <div class="col-12">
+					<p class="lead">Present values & scenarios</p>
+					<div class="table-responsive">
+						<table class="table table-responsive table-hover table-sm table-bordered">
+						  <thead class="thead-light">
+						    <tr>
+						      <th scope="col">Scenario</th>
+						      <th scope="col">Base</th>
+							  <th ng-repeat="s in scenarios.loaded track by $index" scope="col">{{s.name}}</th>
+						    </tr>
+						  </thead>
+						  <tbody>
+						    <tr>
+						      <th scope="row">Value</th>
+							  <td ng-repeat="v in res.present_value track by $index" scope="row" class="text-right">{{v| number:2}}</td>
+						    </tr>
+						    <tr>
+						      <th scope="row">PnL</th>
+							  <td ng-repeat="v in res.present_value track by $index" scope="row" class="text-right">{{v-res.present_value[0]| number:2}}</td>
+						    </tr>
+
+						  </tbody>
+						</table>
+				  	</div> <!-- table -->
+				</div> <!-- col-lg-4 -->
+			</div> <!-- row -->
+
+		  <div class="row" ng-if="res.cashflow">
+			  <div class="col-2">
+				<p class="lead" ng-if="res.cashflow">Cashflow</p>
+				<div class="table-responsive" ng-if="res.cashflow">
+				        <table class="table table-responsive table-hover table-sm table-bordered">
+				          <thead class="thead-light">
+				            <tr>
+				              <th scope="col">Pmt date</th>
+				              <th scope="col">Pmt amount</th>
+				            </tr>
+				          </thead>
+				          <tbody>
+				            <tr ng-repeat="cf in res.cashflow">
+					      	  <td>{{cf[0]}}</td>                
+				              <td class="text-right">{{cf[1] | number:2}}</td>
+				            </tr>
+				          </tbody>
+				        </table>
+				  </div> <!-- table -->
+				</div> <!-- col-2 -->
+
+			  <div class="col-2">
+				<p class="lead" ng-if="res.interest_cashflow">Interest cashflow</p>
+				<div class="table-responsive" ng-if="res.interest_cashflow">
+				        <table class="table table-responsive table-hover table-sm table-bordered">
+				          <thead class="thead-light">
+				            <tr>
+				              <th scope="col">Pmt date</th>
+				              <th scope="col">Pmt amount</th>
+				            </tr>
+				          </thead>
+				          <tbody>
+				            <tr ng-repeat="cf in res.interest_cashflow">
+					      	  <td>{{cf[0]}}</td>                
+				              <td class="text-right">{{cf[1] | number:2}}</td>
+				            </tr>
+				          </tbody>
+				        </table>
+				  </div> <!-- table -->
+				</div> <!-- col-2 -->
+
+			  <div class="col-2">
+				<p class="lead" ng-if="res.principal_cashflow">Principal cashflow</p>
+				<div class="table-responsive" ng-if="res.principal_cashflow">
+				        <table class="table table-responsive table-hover table-sm table-bordered">
+				          <thead class="thead-light">
+				            <tr>
+				              <th scope="col">Pmt date</th>
+				              <th scope="col">Pmt amount</th>
+				            </tr>
+				          </thead>
+				          <tbody>
+				            <tr ng-repeat="cf in res.principal_cashflow">
+					      	  <td>{{cf[0]}}</td>                
+				              <td class="text-right">{{cf[1] | number:2}}</td>
+				            </tr>
+				          </tbody>
+				        </table>
+				  </div> <!-- table -->
+				</div> <!-- col-2 -->
+			</div> <!-- row -->
+
+		  <div class="row" ng-if="res.cashflowtable">
+			  <div class="col-12">
+				<p class="lead">Cashflow table</p>
+				<div class="table-responsive">
+				        <table class="table table-responsive table-hover table-sm table-bordered">
+				          <thead class="thead-light">
+				            <tr>
+				              <th scope="col">Pmt date</th>
+				              <th scope="col">Accr start date</th>
+				              <th scope="col">Accr end date</th>
+				              <th scope="col">Accr factor</th>
+				              <th scope="col">Fwd rate</th>
+				              <th scope="col">Interest date</th>
+				              <th scope="col">Fixing date</th>
+				              <th scope="col">Repay date</th>
+				              <th scope="col">Condition change date</th>
+				              <th scope="col">Curr principal</th>
+				              <th scope="col">Accr</th>
+				              <th scope="col">Int pmt</th>
+				              <th scope="col">Principal pmt</th>
+				              <th scope="col">Total pmt</th>
+				            </tr>
+				          </thead>
+				          <tbody>
+				            <tr ng-repeat="x in res.cashflowtable.date_accrual_start track by $index">
+								<td>{{res.cashflowtable.date_pmt[$index] | date:'yyyy-MM-dd'}}</td>
+								<td>{{x | date:'yyyy-MM-dd'}}</td>
+								<td>{{res.cashflowtable.date_accrual_end[$index] | date:'yyyy-MM-dd'}}</td>
+								<td class="text-right">{{res.cashflowtable.accrual_factor[$index] | number:6}}</td>                    
+								<td class="text-right">{{res.cashflowtable.fwd_rate[$index] | number:6}}</td>
+								<td><span class="badge badge-{{res.cashflowtable.is_interest_date[$index] ? 'primary' : 'secondary'}}">{{res.cashflowtable.is_interest_date[$index]}}</span></td>
+								<td><span class="badge badge-{{res.cashflowtable.is_fixing_date[$index] ? 'primary' : 'secondary'}}">{{res.cashflowtable.is_fixing_date[$index]}}</span></td>
+								<td><span class="badge badge-{{res.cashflowtable.is_repay_date[$index] ? 'primary' : 'secondary'}}">{{res.cashflowtable.is_repay_date[$index]}}</span></td>
+								<td><span class="badge badge-{{res.cashflowtable.is_condition_date[$index] ? 'primary' : 'secondary'}}">{{res.cashflowtable.is_condition_date[$index]}}</span></td>
+								<td class="text-right">{{res.cashflowtable.current_principal[$index] | number:2}}</td> 
+								<td class="text-right">{{res.cashflowtable.accrued_interest[$index] | number:2}}</td>                    
+								<td class="text-right">{{res.cashflowtable.pmt_interest[$index] | number:2}}</td>
+								<td class="text-right">{{res.cashflowtable.pmt_principal[$index] | number:2}}</td>                    
+								<td class="text-right">{{res.cashflowtable.pmt_total[$index] | number:2}}</td>
+				            </tr>
+
+				          </tbody>
+				        </table>
+				  </div> <!-- table -->
+				</div> <!-- col -->
+			</div> <!-- row -->
+
+		  <div class="row" ng-if="res.cashflowtable_fix">
+			  <div class="col-12">
+				<p class="lead">Cashflow table (fix)</p>
+				<div class="table-responsive">
+				        <table class="table table-responsive table-hover table-sm table-bordered">
+				          <thead class="thead-light">
+				            <tr>
+				              <th scope="col">Pmt date</th>
+				              <th scope="col">Accr start date</th>
+				              <th scope="col">Accr end date</th>
+				              <th scope="col">Accr factor</th>
+				              <th scope="col">Fwd rate</th>
+				              <th scope="col">Interest date</th>
+				              <th scope="col">Fixing date</th>
+				              <th scope="col">Repay date</th>
+				              <th scope="col">Condition change date</th>
+				              <th scope="col">Curr principal</th>
+				              <th scope="col">Accr</th>
+				              <th scope="col">Int pmt</th>
+				              <th scope="col">Principal pmt</th>
+				              <th scope="col">Total pmt</th>
+				            </tr>
+				          </thead>
+				          <tbody>
+				            <tr ng-repeat="x in res.cashflowtable_fix.date_accrual_start track by $index">
+								<td>{{res.cashflowtable_fix.date_pmt[$index] | date:'yyyy-MM-dd'}}</td>
+								<td>{{x | date:'yyyy-MM-dd'}}</td>
+								<td>{{res.cashflowtable_fix.date_accrual_end[$index] | date:'yyyy-MM-dd'}}</td>
+								<td class="text-right">{{res.cashflowtable_fix.accrual_factor[$index] | number:6}}</td>                    
+								<td class="text-right">{{res.cashflowtable_fix.fwd_rate[$index] | number:6}}</td>
+								<td><span class="badge badge-{{res.cashflowtable_fix.is_interest_date[$index] ? 'primary' : 'secondary'}}">{{res.cashflowtable_fix.is_interest_date[$index]}}</span></td>
+								<td><span class="badge badge-{{res.cashflowtable_fix.is_fixing_date[$index] ? 'primary' : 'secondary'}}">{{res.cashflowtable_fix.is_fixing_date[$index]}}</span></td>
+								<td><span class="badge badge-{{res.cashflowtable_fix.is_repay_date[$index] ? 'primary' : 'secondary'}}">{{res.cashflowtable_fix.is_repay_date[$index]}}</span></td>
+								<td><span class="badge badge-{{res.cashflowtable_fix.is_condition_date[$index] ? 'primary' : 'secondary'}}">{{res.cashflowtable_fix.is_condition_date[$index]}}</span></td>
+								<td class="text-right">{{res.cashflowtable_fix.current_principal[$index] | number:2}}</td> 
+								<td class="text-right">{{res.cashflowtable_fix.accrued_interest[$index] | number:2}}</td>                    
+								<td class="text-right">{{res.cashflowtable_fix.pmt_interest[$index] | number:2}}</td>
+								<td class="text-right">{{res.cashflowtable_fix.pmt_principal[$index] | number:2}}</td>                    
+								<td class="text-right">{{res.cashflowtable_fix.pmt_total[$index] | number:2}}</td>
+				            </tr>
+
+				          </tbody>
+				        </table>
+				  </div> <!-- table -->
+				</div> <!-- col -->
+			</div> <!-- row -->
+
+		  <div class="row" ng-if="res.cashflowtable_float">
+			  <div class="col-12">
+				<p class="lead">Cashflow table (float)</p>
+				<div class="table-responsive">
+				        <table class="table table-responsive table-hover table-sm table-bordered">
+				          <thead class="thead-light">
+				            <tr>
+				              <th scope="col">Pmt date</th>
+				              <th scope="col">Accr start date</th>
+				              <th scope="col">Accr end date</th>
+				              <th scope="col">Accr factor</th>
+				              <th scope="col">Fwd rate</th>
+				              <th scope="col">Interest date</th>
+				              <th scope="col">Fixing date</th>
+				              <th scope="col">Repay date</th>
+				              <th scope="col">Condition change date</th>
+				              <th scope="col">Curr principal</th>
+				              <th scope="col">Accr</th>
+				              <th scope="col">Int pmt</th>
+				              <th scope="col">Principal pmt</th>
+				              <th scope="col">Total pmt</th>
+				            </tr>
+				          </thead>
+				          <tbody>
+				            <tr ng-repeat="x in res.cashflowtable_float.date_accrual_start track by $index">
+								<td>{{res.cashflowtable_float.date_pmt[$index] | date:'yyyy-MM-dd'}}</td>
+								<td>{{x | date:'yyyy-MM-dd'}}</td>
+								<td>{{res.cashflowtable_float.date_accrual_end[$index] | date:'yyyy-MM-dd'}}</td>
+								<td class="text-right">{{res.cashflowtable_float.accrual_factor[$index] | number:6}}</td>                    
+								<td class="text-right">{{res.cashflowtable_float.fwd_rate[$index] | number:6}}</td>
+								<td><span class="badge badge-{{res.cashflowtable_float.is_interest_date[$index] ? 'primary' : 'secondary'}}">{{res.cashflowtable_float.is_interest_date[$index]}}</span></td>
+								<td><span class="badge badge-{{res.cashflowtable_float.is_fixing_date[$index] ? 'primary' : 'secondary'}}">{{res.cashflowtable_float.is_fixing_date[$index]}}</span></td>
+								<td><span class="badge badge-{{res.cashflowtable_float.is_repay_date[$index] ? 'primary' : 'secondary'}}">{{res.cashflowtable_float.is_repay_date[$index]}}</span></td>
+								<td><span class="badge badge-{{res.cashflowtable_float.is_condition_date[$index] ? 'primary' : 'secondary'}}">{{res.cashflowtable_float.is_condition_date[$index]}}</span></td>
+								<td class="text-right">{{res.cashflowtable_float.current_principal[$index] | number:2}}</td> 
+								<td class="text-right">{{res.cashflowtable_float.accrued_interest[$index] | number:2}}</td>                    
+								<td class="text-right">{{res.cashflowtable_float.pmt_interest[$index] | number:2}}</td>
+								<td class="text-right">{{res.cashflowtable_float.pmt_principal[$index] | number:2}}</td>                    
+								<td class="text-right">{{res.cashflowtable_float.pmt_total[$index] | number:2}}</td>
+				            </tr>
+
+				          </tbody>
+				        </table>
+				  </div> <!-- table -->
+				</div> <!-- col -->
+			</div> <!-- row -->
+
+
+
+        </main>
+      </div>
+    </div>
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="/assets/js/jquery-3.2.1.slim.min.js"></script>
+    <script src="/assets/js/popper.min.js"></script>
+    <script src="/assets/js/bootstrap.min.js"></script>
+    <script src="main.js"></script>
+    <script src="import.js"></script>
+
+    <!-- Icons -->
+    <script src="/assets/js/feather.min.js"></script>
+    <script>
+      feather.replace()
+    </script>
+  </body>
+</html>

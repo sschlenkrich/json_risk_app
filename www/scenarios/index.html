@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="en">
+	<head>
+    	<meta charset="utf-8">
+    	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    	<meta name="description" content="">
+    	<meta name="author" content="">
+    	<link rel="icon" href="/assets/images/favicon.png">
+    	<title>JSON risk - scenarios</title>
+    	<!-- Bootstrap core CSS -->
+    	<link href="/assets/css/bootstrap.min.css" rel="stylesheet">
+    	<!-- Custom styles for this template -->
+    	<link href="/assets/css/dashboard.css" rel="stylesheet">
+    	<!-- Custom styles for Apps -->
+    	<link rel="stylesheet" href="/assets/css/expanded_own_bootstrap_css.css">   	
+    	<!-- angular js-->
+		<script src="/assets/js/angular.min.js"></script>
+		<!-- Papa Parse -->
+		<script src="/assets/js/papaparse.min.js"></script>	
+		<!-- JSON risk -->
+		<script src="/assets/js/json_risk.js"></script>	
+		<!-- JSONRisk JavaScript -->
+		<script src="/assets/js/login.js"></script>
+  	</head>
+  	<body ng-app="riskapp" ng-controller="main_ctrl">
+    	<nav class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0">
+      		<a class="navbar-brand col-sm-3 col-md-2 mr-0" href="/">
+    			<img src="/assets/images/favicon.png" width="25" height="25" class="d-inline-block align-top" alt="">
+    			JSON risk
+  			</a>
+			<span class="navbar-text text-light ml-2 mr-auto">Scenarios</span>
+			<span id="jrloginstatus" class="navbar-text text-light mr-2 ml-auto"></span>
+    	</nav>   
+    	<div class="container-fluid">
+			<div class="row">     	
+     			<div class="col-md-2"> <!--Erste Spalte-->
+					<!--Navigation-->     
+        			<nav class="col-md-2 d-none d-md-block bg-light sidebar">
+          				<div class="sidebar-sticky"> 
+            				<ul class="nav navbar-nav flex-column px-3 mb-1"  id="menulist"> 
+              					<li class="nav-item">
+                 					<a class="nav-link" id="pills-scenarios-tab" href="#" ng-click="new_scenario_group()">
+                 						<span data-feather="plus-circle"></span>New
+                					</a>
+								</li>
+              					<li class="nav-item">
+                 					<a class="nav-link" id="pills-scenarios-tab" href="#" ng-click="display.popup='load'">
+                 						<span data-feather="download-cloud"></span>Load
+                					</a>
+								</li>
+              					<li class="nav-item">
+                 					<a class="nav-link" id="pills-scenarios-tab" href="#" ng-click="display.popup='save'">
+                 						<span data-feather="upload-cloud"></span>Save 
+                					</a>
+              					</li>
+              					<li class="nav-item">
+                 					<a class="nav-link" id="pills-scenarios-tab" href="#" ng-click="import_file('json', 'scenarios')">
+                 						<span data-feather="download"></span>Import JSON
+                					</a>
+								</li>
+              					<li class="nav-item">
+                 					<a class="nav-link" id="pills-scenarios-tab" href="#" ng-click="export_scenarios()">
+                 						<span data-feather="upload"></span>Export JSON
+                					</a>
+              					</li>
+            				</ul>           
+            				<h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+              					<span>Documentation</span>
+            				</h6>
+            				<ul class="navbar-nav flex-column px-3 mb-1" id="docs">
+			                  <li class="nav-item">
+                                <a target="_blank" class="nav-link" href="/docs/Scenarios.md">
+                                  <span data-feather="file-text"></span>
+					                Scenarios                </a>
+                              </li>
+            				</ul>  
+          				</div>
+       				</nav><!--Navigation Ende-->   							
+        		</div><!--Erste Spalte-->	
+       			<div class="col-md-10 px-3 mt-4 mb-1">  <!--Zweite Spalte-->
+          			<!--Scenarios-->          
+          			<div>
+          				<div class="alert alert-success" role="alert" ng-if="display.popup==='load'">
+							<div class="btn-toolbar mb-2 mb-md-0">							
+								<div class="input-group" ng-if="available_scenarios.list!==null">
+									<select class="custom-select" ng-options="value for value in available_scenarios.list" ng-model="available_scenarios.selection">
+										<option value="" selected>Choose scenario group...</option>
+									</select>
+									<div class="input-group-append">
+										<button type="button" class="btn btn-sm btn-outline-secondary" ng-click="load_scenarios()">Load Scenarios</button>
+										<button type="button" class="btn btn-sm btn-outline-secondary" ng-click="display.popup=null">Cancel</button>
+									</div>
+								</div>
+							</div>								
+                		</div>
+          				<div class="alert alert-success" role="alert" ng-if="display.popup==='save'">
+							<div class="btn-toolbar mb-2 mb-md-0">							
+								<div class="input-group" ng-if="available_scenarios.list!==null">
+									<input ng-model="display.name" class="form-control input-sm input-outline-secondary">
+									<div class="input-group-append">
+										<button type="button" class="btn btn-sm btn-outline-secondary" ng-click="save_scenarios()">Save Scenarios</button>
+										<button type="button" class="btn btn-sm btn-outline-secondary" ng-click="display.popup=null">Cancel</button>
+									</div>				
+								</div>
+							</div>	
+                		</div>
+
+						<!-- Scenario set name -->
+        				<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                			<h1 class="h2">{{display.name}}</h1>
+        				</div>
+
+
+						<!-- Scenarios -->
+						<div class="row" ng-if="null!==scenario_group">
+							<div class="col-3">
+								<div class="list-group">
+									<a href="#" class="list-group-item list-group-item-action" ng-repeat="s in scenario_group" ng-click="display.scenario=s" ng-class="{active: s===display.scenario}">{{s.name}}</a>
+									<a href="#" class="list-group-item list-group-item-action" ng-click="add_scenario()">
+										<span data-feather="plus-circle"></span> Add Scenario
+									</a>
+								</div>
+							</div>
+							<div class="col-9">
+								
+								<!-- Scenario header -->
+								<div class="input-group" ng-if="null!==display.scenario">
+								  <div class="input-group-prepend">
+									<span class="input-group-text" id="">Scenario name</span>
+								  </div>
+								  <input type="text" class="form-control" ng-model="display.scenario.name">
+								  <div class="input-group-append">
+									<button class="btn btn-outline-secondary" type="button" ng-click="move_scenario_up()">Move up</button>
+									<button class="btn btn-outline-secondary" type="button" ng-click="move_scenario_down()">Move down</button>
+									<button class="btn btn-outline-secondary" type="button" ng-click="delete_scenario()">Delete</button>
+								  </div>
+								</div>
+
+								<!-- Scenario rules -->
+
+								<div class="list-group mt-4" ng-if="null!==display.scenario">
+									<li class="list-group-item list-group-item-action" ng-repeat="r in display.scenario.rules track by $index">
+										Rule {{$index}}
+										<div>
+					    					<div class="d-flex justify-content-between">
+												<span>Risk Factors:</span><a href='#' ng-click="edit_risk_factors(r)">Edit</a>
+											</div>
+											<p><span ng-repeat="rf in r.risk_factors" class="badge badge-primary mr-1 px-1">{{rf}}</span></p>
+
+					    					<div class="d-flex justify-content-between">
+												<span>Tags:</span><a href='#' ng-click="edit_tags(r)">Edit</a>
+											</div>
+											<p><span ng-repeat="tg in r.tags" class="badge badge-primary mr-1">{{tg}}</span></p>		
+
+					    					<div class="d-flex justify-content-between">
+												<span>Model:</span>
+											</div>
+											<select class="form-control w-25" ng-model="r.model">
+												<option selected></option>												
+												<option>additive</option>
+												<option>multiplicative</option>
+												<option>absolute</option>
+											</select>
+											<p></p>
+	
+					    					<div class="d-flex justify-content-between">
+												<span>Values:</span>
+											</div>
+											
+											<table class="table table-hover table-responsive mt-3">
+												<thead>
+													<tr>
+														<th scope="col">#</th>
+														<th scope="col" ng-repeat="x in r.labels_x track by $index">{{x}}</th>
+													</tr>
+												</thead>
+												<tbody>
+													<tr ng-repeat="y in r.values track by $index">
+														<th scope="row">{{r.labels_y[$index]}}</th>
+														<td ng-repeat="v in y track by $index">{{v}}</td>
+													</tr>
+												</tbody>
+											</table>
+
+					    					<div class="d-flex justify-content-end">
+												<button class="btn btn-outline-secondary btn-sm mr-2" type="button" ng-click="copy_rule_values(r)">Copy to clipboard</button>
+												<button class="btn btn-outline-secondary btn-sm mr-2" type="button" ng-click="paste_rule_values(r)">Paste from clipboard</button>
+												<button class="btn btn-outline-secondary btn-sm mr-2" type="button" ng-click="delete_rule(r)">Delete rule</button>
+											</div>
+
+										</div>
+									</li>
+									<li href="#" class="list-group-item list-group-item-action" ng-click="add_rule()">
+										<span data-feather="plus-circle"></span> Add Rule
+									</li>
+								</div>
+
+							</div>
+						</div>
+        			
+					</div>         			
+ 
+            	
+            	   				              				
+				</div>    <!--Zweite Spalte-->          				               				   
+        	</div>
+		</div>
+    	<!-- Bootstrap core JavaScript
+    	================================================== -->
+    	<!-- Placed at the end of the document so the pages load faster -->
+    	<script src="/assets/js/jquery-3.2.1.slim.min.js"></script>
+    	<script src="/assets/js/popper.min.js"></script>
+    	<script src="/assets/js/bootstrap.min.js"></script>	
+    	<!-- Icons -->
+    	<script src="/assets/js/feather.min.js"></script>
+    	<script>
+      		feather.replace()
+    	</script>	
+		<script src="main.js"></script>
+		<script src="import.js"></script>
+		<script src="export.js"></script>
+		<script src="upload.js"></script>
+  	</body>
+</html>
+
+
+

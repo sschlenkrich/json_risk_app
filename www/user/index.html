@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+   <head>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+      <meta name="description" content="">
+      <meta name="author" content="">
+      <link rel="icon" href="/assets/images/favicon.png">
+      <title>JSON risk - user</title>
+      <!-- Bootstrap core CSS -->
+      <link href="/assets/css/bootstrap.min.css" rel="stylesheet">
+      <!-- Custom styles for this template -->
+      <link href="/assets/css/dashboard.css" rel="stylesheet">
+      <!-- Custom styles for Apps -->
+      <link rel="stylesheet" href="/assets/css/expanded_own_bootstrap_css.css">
+      <!-- angular js-->
+      <script src="/assets/js/angular.min.js"></script>
+      <!-- JSONRisk JavaScript -->
+      <script src="/assets/js/login.js"></script>
+   </head>
+   <body ng-app="riskapp" ng-controller="main_ctrl">
+      <nav class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0">
+         <a class="navbar-brand col-sm-3 col-md-2 mr-0" href="/">
+         <img src="/assets/images/favicon.png" width="25" height="25" class="d-inline-block align-top" alt="">
+         JSON risk
+         </a>
+         <span class="navbar-text text-light ml-2 mr-auto">User management</span>
+         <span id="jrloginstatus" class="navbar-text text-light mr-2 ml-auto"></span>
+      </nav>
+      <div class="container-fluid">
+         <div class="row">
+            <div class="col-md-2">
+               <!--Erste Spalte-->
+               <!--Navigation-->     
+               <nav class="col-md-2 d-none d-md-block bg-light sidebar">
+                  <div class="sidebar-sticky">
+                     <ul class="nav navbar-nav flex-column px-3 mb-1"  id="menulist">
+                        <li class="nav-item" ng-class="{active: display.tab==='password'}">
+                           <a class="nav-link" href="#" ng-click="display.tab='password'">
+                           <span data-feather="file"></span>Update password
+                           </a> 
+                        </li>
+                        <li class="nav-item" ng-class="{active: display.tab==='accounts'}" ng-if="accounts.length">
+                           <a class="nav-link" href="#" ng-click="display.tab='accounts'">
+                           <span data-feather="users"></span>Accounts
+                           </a>
+                        </li>
+                     </ul>
+                     <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+                        <span>Documentation</span>
+                     </h6>
+                     <ul class="navbar-nav flex-column px-3 mb-1" id="docs">
+			          <li class="nav-item">
+                        <a target="_blank" class="nav-link" href="/docs/User_Management.md">
+                          <span data-feather="file-text"></span>
+					        User Management
+				        </a>
+                      </li>
+                     </ul>
+                  </div>
+               </nav>
+               <!--Navigation Ende-->   							
+            </div>
+            <!--Erste Spalte-->	
+            <div ng-if="display.tab=='password'" class="col-md-10 px-3 mt-4 mb-1">
+               <!--Zweite Spalte - Password update-->
+               <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
+                  <h1 class="h2">Update Password</h1>
+               </div>      
+
+                  <form id="jrpassword" class="col-md-4" onsubmit="jrpassword();return false;" enctype="multipart/form-data">
+                     <div class="form-group">	
+                        <label for="pwd">Password</label>			 
+                        <input class="form-control" id="pwd" type="password" placeholder="Password" name="pwd" autofocus>
+                     </div>
+                     <div class="form-group">	
+                        <label for="pwd2">Password (repeated)</label>			 				
+                        <input class="form-control" type="password" placeholder="Password" name="pwd2">
+                     </div>
+                     <button class="btn" type="submit">Update password</button>
+                  </form>
+
+            </div>
+            <!--Zweite Spalte - User Management-->    
+            <div ng-if="display.tab=='accounts'" class="col-md-10 px-3 mt-4 mb-1">
+
+				<!-- Message area -->
+				<div ng-if="display.alert_text" class="alert alert-dismissible show {{ display.alert_error ? 'alert-danger' : 'alert-info'}}" role="alert">
+				    <small>{{display.alert_text}}</small>
+				    <button type="button" class="close" ng-click="display.alert_text=null;">
+				        <span aria-hidden="true">&times;</span>
+				    </button>
+				</div>
+
+               <div ng-if="account!==null" class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
+                  <h1 class="h2">Edit User</h1>
+                  <div class="btn-toolbar mb-2 mb-md-0">
+                     <div class="btn-group mr-2">
+                        <button ng-click="save()" class="btn btn-sm btn-outline-secondary" form="jruseredit">Save</button>
+                        <button ng-click="cancel()" class="btn btn-sm btn-outline-secondary">Cancel</button>
+                     </div>
+                  </div>
+               </div>
+
+
+              <form ng-if="account!==null" id="jruseredit" novalidate onsubmit="return false;" class="col-md-4">
+                 <div class="mb-3">	
+                    <label for="name">Name</label>			 
+                    <input ng-model="account.sub" ng-disabled="account.create !== true" class="form-control" id="sub" type="text" placeholder="Name" name="sub" autofocus>
+                 </div>
+                 <div class="mb-3">	
+                    <label for="name">E-Mail</label>			 
+                    <input ng-model="account.ema" class="form-control" id="ema" type="email" placeholder="name@example.com" name="ema">
+                 </div>
+                 <div class="mb-3">	
+                    <label for="name">Permissions</label>			 
+                    <input ng-model="account.per" class="form-control" id="per" type="text" placeholder="" name="per">
+                 </div>
+              </form>
+
+
+              <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
+                 <h1 class="h2">Users</h1>
+				 <div class="btn-toolbar mb-2 mb-md-0">
+		             <div class="btn-group mr-2">
+		                <button ng-click="update()" class="btn btn-sm btn-outline-secondary">Refresh</button>
+		                <button ng-click="add()" class="btn btn-sm btn-outline-secondary">Add User</button>
+		             </div>
+				 </div>
+              </div>
+
+                  <div class="table table-responsive">
+                     <table ng-if="accounts.length>0" class="table table-responsive table-hover table-sm table-bordered">
+                        <thead class="thead-light">
+                           <tr>
+                              <th scope="col">Index</th>
+                              <th scope="col">Name</th>
+                              <th scope="col">E-Mail</th>
+                              <th scope="col">Permissions</th>
+                              <th scope="col">Locked</th>
+                              <th scope="col">Actions</th>
+                           </tr>
+                        </thead>
+                        <tbody>
+                           <tr ng-repeat="x in accounts">
+                              <th scope="row">{{$index}}</th>
+                              <td>{{x.sub}}</td>
+                              <td>{{x.ema}}</td>
+                              <td>{{x.per}}</td>
+                              <td>{{!!x.locked}}</td>
+                              <td>
+                        		<div class="btn-group mr-2">
+                            		<button type="button" class="btn btn-sm btn-link" ng-click="edit(x)">Edit</button>                                        
+                            		<button type="button" class="btn btn-sm btn-link" ng-click="lock(x)">Lock</button>
+                            		<button type="button" class="btn btn-sm btn-link" ng-click="unlock(x)">Unlock</button>
+                        		</div>
+							  </td>
+                           </tr>
+                        </tbody>
+                     </table>
+                  </div>
+               </div>
+            </div>
+            <!--Zweite Spalte-->          				               				   
+         </div>
+      </div>
+      <!-- Bootstrap core JavaScript
+         ================================================== -->
+      <!-- Placed at the end of the document so the pages load faster -->
+      <script src="/assets/js/jquery-3.2.1.slim.min.js"></script>
+      <script src="/assets/js/popper.min.js"></script>
+      <script src="/assets/js/bootstrap.min.js"></script>	
+      <!-- Icons -->
+      <script src="/assets/js/feather.min.js"></script>
+      <script>
+         feather.replace()
+      </script>	
+      <script src="main.js"></script>
+   </body>
+</html>

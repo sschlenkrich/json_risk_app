@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="en">
+	<head>
+    	<meta charset="utf-8">
+    	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    	<meta name="description" content="">
+    	<meta name="author" content="">
+    	<link rel="icon" href="/assets/images/favicon.png">
+    	<title>JSON risk - series</title>
+    	<!-- Bootstrap core CSS -->
+    	<link href="/assets/css/bootstrap.min.css" rel="stylesheet">
+    	<!-- Custom styles for this template -->
+    	<link href="/assets/css/dashboard.css" rel="stylesheet">
+    	<!-- Custom styles for Apps -->
+    	<link rel="stylesheet" href="/assets/css/expanded_own_bootstrap_css.css">   	
+    	<!-- angular js-->
+		<script src="/assets/js/angular.min.js"></script>
+		<!-- Papa Parse -->
+		<script src="/assets/js/papaparse.min.js"></script>	
+		<!-- JSONRisk JavaScript -->
+		<script src="/assets/js/login.js"></script>
+  	</head>
+  	<body ng-app="series" ng-controller="main_ctrl">
+    	<nav class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0">
+      		<a class="navbar-brand col-sm-3 col-md-2 mr-0" href="/">
+    			<img src="/assets/images/favicon.png" width="25" height="25" class="d-inline-block align-top" alt="">
+    			JSON risk
+  			</a>
+			<span class="navbar-text text-light ml-2 mr-auto">Time Series</span>
+			<span id="jrloginstatus" class="navbar-text text-light mr-2 ml-auto"></span>
+    	</nav>   
+    	<div class="container-fluid">
+			<div class="row">     	
+     			<div class="col-md-2"> <!--Erste Spalte-->
+					<!--Navigation-->     
+        			<nav class="col-md-2 d-none d-md-block bg-light sidebar">
+          				<div class="sidebar-sticky"> 
+            				<ul class="nav navbar-nav flex-column px-3 mb-1"  id="menulist"> 
+              					<li class="nav-item" ng-class="{active: display.tab==='overview'}">
+                					<a class="nav-link" href="#" ng-click="display.tab='overview'">
+                						<span data-feather="database"></span>Overview
+                					</a> 
+              					</li>
+              					<li class="nav-item" ng-class="{active: display.tab==='data'}">
+                 					<a class="nav-link" href="#" ng-click="display.tab='data'">
+                 						<span data-feather="download"></span>Data
+                					</a>
+              					</li>
+              					<li class="nav-item" ng-class="{active: display.tab==='import'}">           
+                 					<a class="nav-link" href="#" ng-click="display.tab='import'">
+                 						<span data-feather="upload"></span>Import
+                					</a>
+              					</li>
+            				</ul>           
+            				<h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+              					<span>Documentation</span>
+            				</h6>
+            				<ul class="navbar-nav flex-column px-3 mb-1" id="docs">
+			                  <li class="nav-item">
+                                <a target="_blank" class="nav-link" href="/docs/Time_Series.md">
+                                  <span data-feather="file-text"></span>
+					                Time Series                </a>
+                              </li>
+            				</ul>  
+          				</div>
+       				</nav><!--Navigation Ende-->   							
+        		</div><!--Erste Spalte-->	
+       			<div class="col-md-10 px-3 mt-4 mb-1">  <!--Zweite Spalte-->
+
+				<!-- Message area -->
+				<div ng-if="display.alert_text" class="alert alert-dismissible show {{ display.alert_error ? 'alert-danger' : 'alert-info'}}" role="alert">
+				    <small>{{display.alert_text}}</small>
+				    <button type="button" class="close" ng-click="display.alert_text=null;">
+				        <span aria-hidden="true">&times;</span>
+				    </button>
+				</div>
+
+				<div ng-if="display.del" class="alert alert-danger show text-right" role="alert">
+				    <button type="button" class="btn btn-sm btn-outline-secondary" ng-click="deleteTimeSeries()">
+				        Delete {{display.del.name}} (Tag {{display.del.tag}})
+				    </button>
+				    <button type="button" class="btn btn-sm btn-outline-secondary" ng-click="display.del={name: display.del.name,tag:null};deleteTimeSeries()">
+				        Delete {{display.del.name}} (All tags)
+				    </button>
+				    <button type="button" class="btn btn-sm btn-outline-secondary" ng-click="display.del=null">
+				        Cancel
+				    </button>
+				</div>
+
+				<div ng-if="display.is_loading" class="alert alert-info show">Waiting for server...</div>
+
+				<!--Metadata-->
+ 					<div ng-if="display.tab==='overview'">
+
+						<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
+							<h1 class="h2">Time series definitions</h1>
+							<div class="btn-toolbar mb-2 mb-md-0">
+								<div class="btn-group mr-2">
+									<button class="btn btn-sm btn-outline-secondary" ng-click="refresh()">Refresh</button>									
+									<a href="/api/series/definitions" class="btn btn-sm btn-outline-secondary" download="definitions.json">Download</a>
+								</div>
+							</div>
+						</div>
+
+                        <table class="table table-hover table-sm table-bordered">
+                            <thead class="thead-light">
+                                <th scope="col">Name</th>
+                                <th scope="col">Tag</th>
+								<th scope="col">Description</th>
+                                <th scope="col">Meta</th>
+                                <th scope="col">Actions</th>
+                            </thead>
+                            <tr ng-repeat="x in display.ts_def track by $index">
+                                <td>{{ x.name }}</td>
+                                <td>{{ x.tag }}</td>
+                                <td>{{ x.desc }}</td>
+                                <td>{{ x.meta }}</td>
+								<td>
+									<button type="button" class="btn btn-sm btn-link" ng-click='display.del=x;'>Delete</button>
+								</td>
+                            </tr>
+                        </table>
+
+					</div>
+          
+				<!--View-->          
+          			<div ng-if="display.tab==='data'">
+
+						<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
+							<h2 class="h2">Time series data</h2>
+							<div class="btn-toolbar mb-2 mb-md-0">
+								<div class="btn-group mr-2">				
+									<a href="/api/series/data" class="btn btn-sm btn-outline-secondary" download="export.csv">Export all</a>
+								</div>
+							</div>
+						</div>
+
+
+						<div class="card m-1 bg-light">
+				            <div class="card-body">
+				                <form  method="get" action="/api/series/table" target="_blank">				                    
+				                    <div class="form-group form-group-sm">
+				                        <label for="NAME">Name</label>
+										<select class="custom-select" name="NAME" ng-options="name for name in query.available track by name" ng-model="query.name">
+											<option value="" selected>Choose time series name...</option>
+										</select>
+
+				                        <label for="FROM">From</label>
+				                        <input class="form-control" name="FROM" type="text" ng-model="query.from" placeholder="YYYY-MM-DD">
+
+				                        <label for="TO">To</label>
+				                        <input class="form-control" name="TO" type="text" ng-model="query.to" placeholder="YYYY-MM-DD">
+
+				                        <label for="INTERPOLATE">Interpolation</label>
+										<select class="custom-select" name="INTERPOLATE" ng-model="query.interpolate">
+											<option value="true" selected>true</option>
+											<option value="false">false</option>
+										</select>
+				                    </div>
+				                        
+				                    <button type="button" class="btn btn-secondary" ng-disabled="!query.name" ng-click="showData()">Show</button>
+				                    <button type="submit" class="btn btn-secondary" ng-disabled="!query.name" download="{{query.name}}.csv">Download</button>
+				                
+				                </form>
+				            </div>
+				        </div>
+
+						<div class="table-responsive">
+		                    <table class="table table-hover table-sm table-bordered table-responsive">
+		                        <tr ng-repeat="x in display.ts_data track by $index">
+		                            <td ng-repeat="y in x track by $index">
+		                                {{ y }} 
+		                        </tr>
+		                    </table>
+						</div>
+					</div>         			
+         		<!--Import-->
+          			<div ng-if="display.tab==='import'">
+				        <div class="card m-1 bg-light">
+				            <div class="card-body">
+				                <form id="form_data">
+				                    <h4 class="card-title">Upload time series data</h4>
+				                    
+				                    <div class="form-group form-group-sm">
+				                        <label for="file">File</label>
+				                        <input class="form-control-file" type="file" name="file">
+				                    </div>
+				                    <button type="submit" class="btn btn-secondary" ng-click="sendData()">Upload</button>
+				                </form>
+				            </div>
+				        </div>
+ 					</div>
+ 	
+            	
+            	   				              				
+				</div>    <!--Zweite Spalte-->          				               				   
+        	</div>
+		</div>
+    	<!-- Bootstrap core JavaScript
+    	================================================== -->
+    	<!-- Placed at the end of the document so the pages load faster -->
+    	<script src="/assets/js/jquery-3.2.1.slim.min.js"></script>
+    	<script src="/assets/js/popper.min.js"></script>
+    	<script src="/assets/js/bootstrap.min.js"></script>	
+    	<!-- Icons -->
+    	<script src="/assets/js/feather.min.js"></script>
+    	<script>
+      		feather.replace()
+    	</script>	
+		<script src="main.js"></script>
+
+  	</body>
+</html>
+
+
+

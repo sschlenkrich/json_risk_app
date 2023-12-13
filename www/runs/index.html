@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en">
+	<head>
+    	<meta charset="utf-8">
+    	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    	<meta name="description" content="">
+    	<meta name="author" content="">
+    	<link rel="icon" href="/assets/images/favicon.png">
+    	<title>JSON risk - batch</title>
+    	<!-- Bootstrap core CSS -->
+    	<link href="/assets/css/bootstrap.min.css" rel="stylesheet">
+    	<!-- Custom styles for this template -->
+    	<link href="/assets/css/dashboard.css" rel="stylesheet">
+		<link href="/assets/css/modal.css" rel="stylesheet">
+    	<!-- Custom styles for Apps -->
+    	<link rel="stylesheet" href="/assets/css/expanded_own_bootstrap_css.css">   	
+    	<!-- angular js-->
+		<script src="/assets/js/angular.min.js"></script>
+		<!-- JSONRisk JavaScript -->
+		<script src="/assets/js/login.js"></script>
+  	</head>
+  	<body ng-app="riskapp" ng-controller="main_ctrl">
+    	<nav class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0">
+      		<a class="navbar-brand col-sm-3 col-md-2 mr-0" href="/">
+    			<img src="/assets/images/favicon.png" width="25" height="25" class="d-inline-block align-top" alt="">
+    			JSON risk
+  			</a>
+			<span class="navbar-text text-light ml-2 mr-auto">Batch</span>
+			<span id="jrloginstatus" class="navbar-text text-light mr-2 ml-auto"></span>
+    	</nav>   
+    	<div class="container-fluid">
+			<div class="row">     	
+     			<div class="col-md-2"> <!--Erste Spalte-->
+					<!--Navigation-->     
+        			<nav class="col-md-2 d-none d-md-block bg-light sidebar">
+          				<div class="sidebar-sticky"> 
+            				<ul class="nav navbar-nav flex-column px-3 mb-1"  id="menulist"> 
+              					<li class="nav-item">
+                 					<a class="nav-link" id="pills-params-tab" href="#" ng-click="display.history=false">
+                 						<span data-feather="fast-forward"></span>Run Templates
+                					</a>
+								</li>
+              					<li class="nav-item">
+                 					<a class="nav-link" id="pills-params-tab" href="#" ng-click="display.history=true">
+                 						<span data-feather="clock"></span>History
+                					</a>
+								</li>
+              					<li class="nav-item">
+                 					<a class="nav-link" id="pills-params-tab" href="#" ng-click="update()">
+                 						<span data-feather="refresh-cw"></span>Refresh
+                					</a>
+								</li>
+              					<li class="nav-item">
+                 					<a class="nav-link" id="pills-params-tab" href="#" ng-click="create()">
+                 						<span data-feather="plus-circle"></span>Create new
+                					</a>
+								</li>
+            				</ul>           
+            				<h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+              					<span>Documentation</span>
+            				</h6>
+            				<ul class="navbar-nav flex-column px-3 mb-1" id="docs">
+                                <li class="nav-item">
+                                    <a target="_blank" class="nav-link" href="/docs/Batch.md">
+                                    <span data-feather="file-text"></span>
+                                    Batch Runs</a>
+                                </li>
+            				</ul>  
+          				</div>
+       				</nav><!--Navigation Ende-->   							
+        		</div><!--Erste Spalte-->	
+       			<div class="col-md-10 px-3 mt-4 mb-1">  <!--Zweite Spalte-->
+          			<!--Batch runs-->          
+          			<div>
+
+						<!-- Editor -->
+						<div class="modal jrmodal" ng-if="editor.json" tabindex="-1">
+						  <div class="modal-dialog modal-lg">
+							<div class="modal-content">
+							  <div class="modal-header">
+								<h5 class="modal-title">View and edit</h5>
+							  </div>
+							  <div class="modal-body">
+								<textarea ng-model="editor.json" class="form-control input-sm input-outline-secondary mb-1" rows="12"></textarea>
+								
+								<strong ng-if="!editor.valid">Invalid JSON:</strong>                  
+								<p ng-if="!editor.valid">{{editor.msg}}</p>
+							  </div>
+							  <div class="modal-footer">
+								<button type="button" class="btn btn-sm btn-primary" ng-click="save()" ng-if="editor.valid">Save</button>
+								<button type="button" class="btn btn-sm btn-secondary" ng-click="cancel_editor()">Cancel</button>
+							  </div>
+							</div>
+						  </div>
+						</div>
+
+                        <!-- TEMPLATES -->
+        				<div class="table-responsive" ng-if="display.history===false">
+                  			<table class="table table-responsive table-hover table-sm table-bordered">
+                          		<thead class="thead-light">
+                            		<tr>
+                              			<th scope="col">Name</th>
+                              			<th scope="col">Valuation Date</th>
+                              			<th scope="col">Portfolios</th>
+										<th scope="col">Parameters</th>
+                              			<th scope="col">Scenarios</th>
+                              			<th scope="col">Modules</th>
+                              			<th scope="col">Status</th>
+                              			<th scope="col">Actions</th>
+                            		</tr>
+                          		</thead>
+                          		<tbody>
+                            		<tr ng-repeat="templ in runs.templates">
+                              			<th scope="row" class="text-truncate">{{templ.name}}</th>
+                              			<td>{{templ.valuation_date}}</td>
+                              			<td><p ng-repeat="pf in templ.portfolios track by $index" class="mt-0 mb-0 text-muted text-truncate">{{pf}}</p></td>
+                              			<td><p ng-repeat="pr in templ.params track by $index" class="mt-0 mb-0 text-muted text-truncate">{{pr}}</p></td>
+                              			<td><p ng-repeat="s in templ.scenario_groups track by $index" class="mt-0 mb-0 text-muted text-truncate">{{s}}</p></td>
+                              			<td><p ng-repeat="m in templ.modules track by $index" class="mt-0 mb-0 text-muted text-truncate">{{m}}</p></td>
+                              			<td>
+                                            <span ng-if="templ.status!=='running'" class="badge badge-{{templ.status==='completed' ? 'success' : (templ.status==='failed' ? 'danger' : 'secondary')}}">{{templ.status}}</span>
+                                            <span ng-if="templ.status==='running'" class="badge badge-secondary">{{templ.status}} {{templ.percentage}}%</span>
+                                        </td>
+                              			<td>                                    		
+                                            <div class="btn-group mr-2">
+												<button type="button" class="btn btn-sm btn-link" ng-click="edit(templ)">Edit</button>                                        		
+												<button type="button" class="btn btn-sm btn-link" ng-click="execute(templ)">Execute</button>                                        		
+												<button type="button" class="btn btn-sm btn-link" ng-click="remove(templ)">Remove</button>
+                                    		</div>
+                                        </td>
+                            		</tr>
+                          		</tbody>
+							</table>
+						</div> 
+
+                        <!-- HISTORY -->
+        				<div class="table-responsive" ng-if="display.history">
+                  			<table class="table table-responsive table-hover table-sm table-bordered">
+                          		<thead class="thead-light">
+                            		<tr>
+                              			<th scope="col">ID</th>
+                                        <th scope="col">Name</th>
+                              			<th scope="col">Valuation Date</th>
+                              			<th scope="col">Status</th>
+                              			<th scope="col">Message</th>
+                              			<th scope="col">Actions</th>
+                            		</tr>
+                          		</thead>
+                          		<tbody>
+                            		<tr ng-repeat="exec in runs.executions">
+                              			<th scope="row">{{exec.id}}</th>
+                              			<th scope="row">{{exec.name}}</th>
+                              			<td>{{exec.valuation_date}}</td>
+                                        <td>
+                                            <span ng-if="exec.status!=='running'" class="badge badge-{{exec.status==='completed' ? 'success' : (exec.status==='failed' ? 'danger' : 'secondary')}}">{{exec.status}}</span>
+                                            <span ng-if="exec.status==='running'" class="badge badge-secondary">{{exec.status}} {{exec.percentage}}%</span>
+                                        </td>
+                                        <td>{{exec.message}}</td>
+                              			<td>                                    		
+                                            <div class="btn-group mr-2">
+												<a type="button" class="btn btn-sm btn-link" href="{{exec.log_link}}" target="_blank">Logs</a>
+                                                <a type="button" class="btn btn-sm btn-link" href="{{exec.run_link}}" target="_blank">Info</a>
+                                    		</div>
+                                        </td>
+                            		</tr>
+                          		</tbody>
+							</table>
+						</div>                                    
+        				
+					</div>         			
+ 
+            	
+            	   				              				
+				</div>    <!--Zweite Spalte-->          				               				   
+        	</div>
+		</div>
+    	<!-- Bootstrap core JavaScript
+    	================================================== -->
+    	<!-- Placed at the end of the document so the pages load faster -->
+    	<script src="/assets/js/jquery-3.2.1.slim.min.js"></script>
+    	<script src="/assets/js/popper.min.js"></script>
+    	<script src="/assets/js/bootstrap.min.js"></script>	
+    	<!-- Icons -->
+    	<script src="/assets/js/feather.min.js"></script>
+    	<script>
+      		feather.replace()
+    	</script>	
+		<script src="main.js"></script>
+  	</body>
+</html>
+
+
+

@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+	<head>
+    	<meta charset="utf-8">
+    	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    	<meta name="description" content="">
+    	<meta name="author" content="">
+    	<link rel="icon" href="/assets/images/favicon.png">
+    	<title>JSON risk - reports</title>
+    	<!-- Bootstrap core CSS -->
+    	<link href="/assets/css/bootstrap.min.css" rel="stylesheet">
+    	<!-- Custom styles for this template -->
+    	<link href="/assets/css/dashboard.css" rel="stylesheet">
+		<link href="/assets/css/modal.css" rel="stylesheet">
+    	<!-- Custom styles for Apps -->
+    	<link rel="stylesheet" href="/assets/css/expanded_own_bootstrap_css.css">   	
+    	<!-- angular js-->
+		<script src="/assets/js/angular.min.js"></script>
+		<!-- JSONRisk JavaScript -->
+		<script src="/assets/js/login.js"></script>
+  	</head>
+  	<body ng-app="riskapp" ng-controller="main_ctrl">
+    	<nav class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0">
+      		<a class="navbar-brand col-sm-3 col-md-2 mr-0" href="/">
+    			<img src="/assets/images/favicon.png" width="25" height="25" class="d-inline-block align-top" alt="">
+    			JSON risk
+  			</a>
+			<!--<span class="navbar-text text-light ml-2 mr-auto">Reporting engine</span>-->
+
+			<span id="jrloginstatus" class="navbar-text text-light mr-2 ml-auto"></span>
+
+    	</nav>   
+    	<div class="container-fluid">
+			<div class="row">     	
+     			<div class="col-md-2"> <!--Erste Spalte-->
+					<!--Navigation-->     
+        			<nav class="col-md-2 d-none d-md-block bg-light sidebar">
+          				<div class="sidebar-sticky"> 
+            				<ul class="nav navbar-nav flex-column px-3 mb-1"  id="menulist"> 
+              					<li class="nav-item" ng-class="{active: display.tab==='portfolio'}">
+                					<a class="nav-link" href="#" ng-click="edit('fields',fields)">
+                						<span data-feather="edit"></span>Edit fields
+                					</a> 
+              					</li>
+              					<li class="nav-item" ng-class="{active: display.tab==='params'}">
+                 					<a class="nav-link" href="#" ng-click="edit('per-scenario fields',fields)">
+                 						<span data-feather="edit"></span>Edit per-scenario fields
+                					</a>
+              					</li>
+              					<li class="nav-item" ng-class="{active: display.tab==='params'}">
+                 					<a class="nav-link" href="#" ng-click="edit('scenarios',meta.scenarios)">
+                 						<span data-feather="edit"></span>Edit scenarios
+                					</a>
+              					</li>
+              					<li class="nav-item" ng-class="{active: display.tab==='params'}">
+                 					<a class="nav-link" href="#" ng-click="edit('grouping',fields)">
+                 						<span data-feather="edit"></span>Edit grouping
+                					</a>
+              					</li>
+            				</ul>           
+            				<h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+              					<span>Documentation</span>
+            				</h6>
+            				<ul class="navbar-nav flex-column px-3 mb-1" id="docs">
+			                  <li class="nav-item">
+                                <a target="_blank" class="nav-link" href="/docs/Reports.md">
+                                  <span data-feather="file-text"></span>
+					                Reports                </a>
+                              </li>
+            				</ul>  
+          				</div>
+       				</nav><!--Navigation Ende-->   							
+        		</div><!--Erste Spalte-->	
+				<div class="col-md-10 px-3 mt-4 mb-1">  <!--Zweite Spalte-->
+
+					<!--
+
+						Result set selection
+
+					-->
+					<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pb-2 mb-3 border-bottom">
+						<!--<h1 class="h2" ></h1>-->
+
+						<div class="btn-toolbar mb-2" ng-if="null===local_results">							
+							<div class="input-group">
+								<select class="custom-select" ng-options="value for value in dates.available" ng-model="dates.selection" ng-change="load_result_sets()">
+									<option value="" selected>Choose Date...</option>
+								</select>
+								<select class="custom-select" ng-options="value.name for value in result_sets.available" ng-model="result_sets.selection">
+									<option value="" selected>Choose Result Set...</option>
+								</select>
+								<div class="input-group-append">
+									<button type="button" class="btn btn-sm btn-outline-secondary" ng-click="load_results()">Load</button>
+								</div>
+							</div>
+						</div>
+
+						<div class="btn-toolbar mb-2" ng-if="report!==null">
+							<div class="input-group">
+								<select class="custom-select" ng-model="export_settings.separator">
+									<option value="&#9;" selected>Tabulator</option>
+									<option value=";" selected>Semicolon</option>
+									<option value="," selected>Comma</option>
+									<option value="&#30;">Record separator</option>
+								</select>
+								<div class="input-group-append">
+									<button type="button" class="btn btn-outline-secondary" ng-click="export()">Export to csv</button>
+									<button type="button" class="btn btn-outline-secondary" ng-click="clipboard()">Copy to clipboard</button>
+								</div>
+							</div>				
+						</div>
+					</div>
+
+					<!--
+
+						Column and grouping editor
+
+					-->
+					
+					<div class="modal jrmodal" ng-if="picker.enabled" tabindex="-1">
+					  <div class="modal-dialog modal-lg">
+						<div class="modal-content">
+						  <div class="modal-header">
+							<h5 class="modal-title">{{picker.title}}</h5>
+						  </div>
+						  <div class="modal-body">
+        					<div class="row mb-1">
+								<div class="col-5">
+									<input ng-model="picker.filter" placeholder="filter" class="form-control"></select>
+								</div>
+							</div>
+							<div class="row mb-1">
+								<div class="col-5">
+									<select ng-model="picker.left" size="20" class="form-control" multiple>
+										<option ng-repeat="item in picker.available | filter:picker.filter" ng-disabled="picker.selection.indexOf(item)>=0">{{item}}</option>
+									</select>	
+								</div>
+								<div class="col-1">
+									<button ng-click="all_to_right()" class="btn btn-secondary btn-block p-0"><span data-feather="chevrons-right"></span></button>
+									<button ng-click="sel_to_right()" class="btn btn-secondary btn-block p-0"><span data-feather="chevron-right"></span></button>
+									<button ng-click="sel_to_left()" class="btn btn-secondary btn-block p-0"><span data-feather="chevron-left"></span></button>
+									<button ng-click="all_to_left()" class="btn btn-secondary btn-block p-0"><span data-feather="chevrons-left"></span></button>
+								</div>
+								<div class="col-5">
+									<select ng-model="picker.right" size="20" class="form-control" multiple>
+										<option ng-repeat="item in picker.selection">{{item}}</option>
+									</select>
+								</div>
+								<div class="col-1">
+									<button ng-click="move_up()" class="btn btn-secondary btn-block p-0"><span data-feather="chevron-up"></span></button>
+									<button ng-click="move_down()" class="btn btn-secondary btn-block p-0"><span data-feather="chevron-down"></span></button>
+								</div>
+							</div>
+						  </div>
+						  <div class="modal-footer">
+							<button ng-click="cancel_edit()" class="btn btn-secondary">Cancel</button>
+							<button ng-click="confirm_edit()" class="btn btn-primary">Confirm</button>
+						  </div>
+						</div>
+					  </div>
+					</div>
+
+
+					<!--
+
+						Result table
+					-->
+
+
+
+					<div class="pb-2 mb-3" ng-if="report!==null">
+						<div class="table table-responsive text-nowrap">
+							<table class="table table-bordered table-sm">
+								<thead>
+									<tr ng-repeat="header in report.headers track by $index">
+										<th scope="row" ng-repeat="col in header track by $index" colspan="{{col.colspan}}">{{col.text}}</th>
+									</tr>
+								</thead>
+								<tbody>
+									<tr ng-repeat="row in report.rows track by $index">
+										<td ng-repeat="col in row track by $index" ng-class="{'text-right': col * 1 === col}">{{col | filter_scalars }}</td>
+									</tr>
+								</tbody>
+							</table>
+						</div>
+					</div>
+
+
+				</div>
+			</div>
+    	<!-- Bootstrap core JavaScript
+    	================================================== -->
+    	<!-- Placed at the end of the document so the pages load faster -->
+    	<script src="/assets/js/jquery-3.2.1.slim.min.js"></script>
+    	<script src="/assets/js/popper.min.js"></script>
+    	<script src="/assets/js/bootstrap.min.js"></script>	
+		<script src="/assets/js/papaparse.min.js"></script>	
+    	<!-- Icons -->
+    	<script src="/assets/js/feather.min.js"></script>
+    	<script>
+      		feather.replace()
+    	</script>	
+		<script src="util.js"></script>
+		<script src="main.js"></script>
+		<script src="render.js"></script>
+		<script src="/assets/js/aggregate.js"></script>
+  	</body>
+</html>
+
+
+

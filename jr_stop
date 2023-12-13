@@ -1,0 +1,12 @@
+#!/bin/bash
+
+JR_ROOT="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
+
+source "$JR_ROOT/res/sh/config.sh"
+
+#
+# stop deamons
+#
+stop_nginx
+stop_phpfpm
+stop_agent

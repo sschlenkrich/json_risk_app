@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="icon" href="/assets/images/favicon.png">
+
+    <title>JSON risk - main</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="/assets/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <link href="/assets/css/dashboard.css" rel="stylesheet">
+
+    <!-- JSONRisk JavaScript -->
+    <script src="/assets/js/login.js"></script>
+  </head>
+
+  <body>
+    <nav class="navbar navbar-dark sticky-top bg-dark flex-md-nowrap p-0">
+      <a class="navbar-brand col-sm-3 col-md-2 mr-0" href="/">
+    			<img src="/assets/images/favicon.png" width="25" height="25" class="d-inline-block align-top" alt="">
+    			JSON risk
+	  </a>
+	  <span id="jrloginstatus" class="navbar-text text-light ml-auto"></span>
+      <ul class="navbar-nav px-3">
+
+	<form id="jrlogin" class="form-inline mt-2 mt-md-0" onsubmit="jrlogin();return false;" enctype="multipart/form-data">
+		<input class="form-control form-control-dark mr-sm-2" type="text" placeholder="Instance" name="ins" required autofocus>            
+	    <input class="form-control form-control-dark mr-sm-2" type="text" placeholder="User Name" name="sub" required>
+        <input class="form-control form-control-dark mr-sm-2" type="password" placeholder="Password" name="pwd">
+        <button class="btn btn-light my-2 my-sm-0" type="submit">Login</button>
+	</form>
+	<form id="jrlogout" class="form-inline mt-2 mt-md-0 collapse" onsubmit="jrlogout();return false;">
+        <button class="btn btn-light my-2 my-sm-0" type="submit">Logout</button>
+	</form>
+	</ul>
+    </nav>
+
+    <div class="container-fluid">
+      <div class="row">
+        <nav class="col-md-2 d-none d-md-block bg-light sidebar">
+          <div class="sidebar-sticky">
+            <ul class="nav flex-column">
+              <li class="nav-item">
+                <a class="nav-link active" href="#">
+                  <span data-feather="home"></span>
+                  Home
+                </a>
+              </li>
+              <li class="nav-item">
+                <a target="_blank" class="nav-link" href="/portfolio">
+                  <span data-feather="database"></span>
+                  Portfolios
+                </a>
+              </li>
+              <li class="nav-item">
+                <a target="_blank" class="nav-link" href="/params">
+                  <span data-feather="aperture"></span>
+                  Parameters
+                </a>
+              </li>
+              <li class="nav-item">
+                <a target="_blank" class="nav-link" href="/scenarios">
+                  <span data-feather="zap"></span>
+                  Scenarios
+                </a>
+              </li>
+              <li class="nav-item">
+                <a target="_blank" class="nav-link" href="/series">
+                  <span data-feather="trending-up"></span>
+                  Time Series
+                </a>
+              </li>
+              <li class="nav-item">
+                <a target="_blank" class="nav-link" href="/analysis">
+                  <span data-feather="chevron-right"></span>
+                  Analysis
+                </a>
+              </li>
+              <li class="nav-item">
+                <a target="_blank" class="nav-link" href="/reports">
+                  <span data-feather="bar-chart"></span>
+                  Reports
+                </a>
+              </li>
+			  <li class="nav-item">
+                <a target="_blank" class="nav-link" href="/pricing">
+                  <span data-feather="layers"></span>
+                  Pricing
+                </a>
+              </li>
+              <li class="nav-item">
+                <a target="_blank" class="nav-link" href="/runs">
+                  <span data-feather="fast-forward"></span>
+                  Batch
+                </a>
+              </li>
+              <li class="nav-item">
+                <a target="_blank" class="nav-link" href="/modules">
+                  <span data-feather="code"></span>
+                  Modules
+                </a>
+              </li>
+              <li class="nav-item">
+                <a target="_blank" class="nav-link" href="/user">
+                  <span data-feather="users"></span>
+                  User Management
+                </a>
+              </li>
+            </ul>
+
+            <h6 class="sidebar-heading d-flex justify-content-between align-items-center px-3 mt-4 mb-1 text-muted">
+              <span>Documentation</span>
+            </h6>
+
+            <ul class="nav flex-column mb-2">
+			   <li class="nav-item">
+                <a target="_blank" class="nav-link" href="/docs/Analysis.md">
+                  <span data-feather="file-text"></span>
+					Analysis                </a>
+              </li>
+			  <li class="nav-item">
+                <a target="_blank" class="nav-link" href="/docs/Overview.md">
+                  <span data-feather="file-text"></span>
+					Overview                </a>
+              </li>
+			  <li class="nav-item">
+                <a target="_blank" class="nav-link" href="/docs/Parameters.md">
+                  <span data-feather="file-text"></span>
+					Parameters                </a>
+              </li>
+			  <li class="nav-item">
+                <a target="_blank" class="nav-link" href="/docs/Portfolios.md">
+                  <span data-feather="file-text"></span>
+					Portfolios                </a>
+              </li>
+			  <li class="nav-item">
+                <a target="_blank" class="nav-link" href="/docs/Pricing.md">
+                  <span data-feather="file-text"></span>
+					Pricing                </a>
+              </li>
+			  <li class="nav-item">
+                <a target="_blank" class="nav-link" href="/docs/Reports.md">
+                  <span data-feather="file-text"></span>
+					Reports                </a>
+              </li>
+			  <li class="nav-item">
+                <a target="_blank" class="nav-link" href="/docs/Scenarios.md">
+                  <span data-feather="file-text"></span>
+					Scenarios                </a>
+              </li>
+			  <li class="nav-item">
+                <a target="_blank" class="nav-link" href="/docs/Batch.md">
+                  <span data-feather="file-text"></span>
+					Batch                </a>
+              </li>
+			  <li class="nav-item">
+                <a target="_blank" class="nav-link" href="/docs/Time_Series.md">
+                  <span data-feather="file-text"></span>
+					Time Series                </a>
+              </li>
+			  <li class="nav-item">
+                <a target="_blank" class="nav-link" href="/docs/Modules.md">
+                  <span data-feather="file-text"></span>
+					Modules                </a>
+              </li>
+			  <li class="nav-item">
+                <a target="_blank" class="nav-link" href="/docs/API_Documentation.md">
+                  <span data-feather="file-text"></span>
+					API Documentation                </a>
+              </li>
+			  <li class="nav-item">
+                <a target="_blank" class="nav-link" href="/docs/User_Management.md">
+                  <span data-feather="file-text"></span>
+					User Management
+				</a>
+              </li>
+			</ul>  
+          </div>
+        </nav>
+
+        <main role="main" class="col-md-9 ml-sm-auto col-lg-10 pt-3 px-4">
+
+
+			<div class="jumbotron">
+			  <h1 class="display-4">Welcome</h1>
+			  <p class="lead">JSON risk application start page.</p>
+			  <hr class="my-4">
+			  
+			  <p class="lead">
+				<a class="btn btn-primary btn-lg" href="/portfolio" target="_blank" role="button">Manage portfolios</a>
+				<a class="btn btn-primary btn-lg" href="/pricing" target="_blank" role="button">Start ad-hoc calculations</a>
+				<a class="btn btn-primary btn-lg" href="/analysis" target="_blank" role="button">Analyse financial instrument</a>
+				<a class="btn btn-primary btn-lg" href="/docs" target="_blank" role="button">Read docs</a>
+			  </p>
+			</div>
+
+        </main>
+      </div>
+    </div>
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="/assets/js/jquery-3.2.1.slim.min.js"></script>
+    <script src="/assets/js/popper.min.js"></script>
+    <script src="/assets/js/bootstrap.min.js"></script>
+
+    <!-- Icons -->
+    <script src="/assets/js/feather.min.js"></script>
+    <script>
+      feather.replace()
+    </script>
+  </body>
+</html>

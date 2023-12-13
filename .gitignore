@@ -1,0 +1,8 @@
+.config
+*.*~
+.var
+.security.json
+jr.tar.gz
+jr.tar.bz2
+jr.zip
+www/assets/*/*.gz

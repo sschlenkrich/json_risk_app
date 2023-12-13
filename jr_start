@@ -1,0 +1,13 @@
+#!/bin/bash
+
+JR_ROOT="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
+JR_USER=`whoami`
+
+source "$JR_ROOT/res/sh/config.sh"
+
+#
+# start deamons
+#
+start_phpfpm
+start_agent
+start_nginx

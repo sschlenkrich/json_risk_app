@@ -1,0 +1,43 @@
+#!/bin/bash
+
+JR_ROOT="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
+JR_USER=`whoami`
+
+source "$JR_ROOT/res/sh/config.sh"
+
+usage(){
+	echo "Usage: jr_user_add <INSTANCE> <USERNAME>"
+	exit 1
+}
+
+#
+# get instance
+#
+JR_INSTANCE=$1
+
+[ -z $JR_INSTANCE ] && usage
+[[ "$JR_INSTANCE" =~ ^[a-zA-Z0-9_-]+$ ]] || jr_fail "Instance name $JR_INSTANCE is invalid. Can only contain letters, numbers, hyphens and underscores."
+[ -d "$JR_DATADIR/$JR_INSTANCE" ] || jr_warn "Instance $JR_INSTANCE does not exist. Creating it."
+mkdir -p "$JR_DATADIR/$JR_INSTANCE/user"
+
+#
+# get user
+#
+USER_TO_ADD=$2
+
+[ -z "$USER_TO_ADD" ] && usage
+[[ "$USER_TO_ADD" =~ ^[a-zA-Z0-9_-]+$ ]] || jr_fail "User name $USER_TO_ADD is invalid. Can only contain letters, numbers, hyphens and underscores."
+
+#
+# get password
+#
+echo -n Password: 
+read -s PASSWORD
+echo
+[[ "$PASSWORD" =~ ^[^[:space:]]+$ ]] || jr_fail "Password is invalid. Must contain more than zero characters and can not contain whitespace."
+
+#
+# create and store user json
+#
+
+"$JR_PHP" -f "$JR_ROOT/res/php/user.php" -c "$JR_ROOT/res/php/php.ini" -- "$JR_INSTANCE" "$USER_TO_ADD" "$PASSWORD" > "$JR_DATADIR/$JR_INSTANCE/user/${USER_TO_ADD}.json"
