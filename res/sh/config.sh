@@ -123,12 +123,8 @@ start_agent(){
 		return 0
 	fi
 	rm -f "${JR_TMPDIR}/agent.sock"
-    
-    TMPFILE=`mktemp`
-	chmod 600 "$TMPFILE"
-	config_template "$JR_ROOT/res/templates/agent.conf.json" > "$TMPFILE"
 
-	(exec "${JR_NODEJS}" "${JR_ROOT}/res/js/agent.js" >> "${JR_TMPDIR}/agent.log" 2>&1 < "$TMPFILE" & )
+	(exec "${JR_NODEJS}" "${JR_ROOT}/res/js/agent.js" >> "${JR_TMPDIR}/agent.log" 2>&1 & )
     rm -f "$TMPFILE"
 
 	wait_for_pid start "$JR_PID_AGENT" || jr_fail "Could not start agent."

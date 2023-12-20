@@ -5,7 +5,9 @@ const worker_pool=require('./worker_pool.js'); // pool of workers
 const runner=require('./runner.js'); // watches for runs submitted and executes them in separate processes
 const auth=require('./auth.js'); // authentication
 const util=require('./util.js'); // utility functions
-const {socket, pidfile}=JSON.parse(fs.readFileSync(0).toString());
+const jr_tmpdir=process.env['JR_TMPDIR']; // temp dir
+const socket=`${jr_tmpdir}/agent.sock`; // socket for communication with nginx
+const pidfile=`${jr_tmpdir}/agent.pid`; // pid file
 
 // simple cache for params
 const cache={

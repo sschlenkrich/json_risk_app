@@ -1,6 +1,0 @@
-{
-    "socket": "{{JR_TMPDIR}}/agent.sock",
-    "pidfile": "{{JR_TMPDIR}}/agent.pid",
-    "secret": "{{JR_SECRET}}",
-    "datadir": "{{JR_DATADIR}}"
-}
