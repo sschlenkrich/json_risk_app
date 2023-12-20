@@ -164,8 +164,10 @@ const cleanup=function(){
 	util.jr_log('Stopping server..');
 	server.close(() => {
 		util.jr_log('Server stopped');
-		if (pidfile) fs.unlinkSync(pidfile);
-		process.exit();
+		try{
+			fs.unlinkSync(pidfile);
+		}catch{}
+		process.exit(0);
 	});
 };
 process.on('SIGQUIT', cleanup);
@@ -175,7 +177,9 @@ process.on('SIGTERM', cleanup);
 process.on('uncaughtException', function(e) {
 	util.jr_fail('ERROR: An uncaught exception occurred');
 	console.log(e.stack);
-	if (pidfile) fs.unlinkSync(pidfile);
+	try{
+		fs.unlinkSync(pidfile);
+	}catch{}
 	process.exit(1);
 });
 

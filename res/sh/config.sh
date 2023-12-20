@@ -124,7 +124,19 @@ start_agent(){
 	fi
 	rm -f "${JR_TMPDIR}/agent.sock"
 
-	(exec "${JR_NODEJS}" "${JR_ROOT}/res/js/agent.js" >> "${JR_TMPDIR}/agent.log" 2>&1 & )
+	(
+        (
+            while true;do
+                "${JR_NODEJS}" "${JR_ROOT}/res/js/agent.js" >> "${JR_TMPDIR}/agent.log" 2>&1
+                RETVAL=$?
+                [ "$RETVAL" -eq 0 ] && break
+                rm -f "${JR_TMPDIR}/agent.sock"
+                sleep 1
+            done
+        )&
+    )
+
+
     rm -f "$TMPFILE"
 
 	wait_for_pid start "$JR_PID_AGENT" || jr_fail "Could not start agent."
