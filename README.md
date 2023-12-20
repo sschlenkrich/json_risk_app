@@ -7,6 +7,7 @@ JSONRisk App requires
  - php
  - php-fpm
  - nginx
+ - nodejs
 
 ## Getting started
 
@@ -57,6 +58,11 @@ JSONRisk App does not require any configuration as long as requirements are met.
 # Path to NGINX executable. By default, is detected automatically
 #
 # JR_NGINX=
+
+#
+# Path to NODE.js executable. By default, is detected automatically
+#
+# JR_NODEJS=
 
 ```
 

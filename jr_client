@@ -32,6 +32,6 @@ shift
 # get token
 #
 
-TOKEN=$(node "$JR_ROOT/res/js/token.js" "$JR_INSTANCE" rwx 1 )
+TOKEN=$("$JR_NODEJS" "$JR_ROOT/res/js/token.js" "$JR_INSTANCE" rwx 1 )
 echo Executing curl -H "Authorization: Bearer $TOKEN" "$URL" "$@" >&2
 curl -H "Authorization: Bearer $TOKEN" "$URL" "$@"

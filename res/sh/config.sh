@@ -15,8 +15,8 @@ jr_warn(){
 }
 
 jr_fail(){
-	echo "$(date '+%Y-%m-%d %H:%M:%S') FATAL: $@ "
-	rm -f "$TMPFILE"
+	echo "$(date '+%Y-%m-%d %H:%M:%S') FATAL: $@"
+	[ -n "$TMPFILE" ] && rm -f "$TMPFILE"
 	exit 1
 }
 
@@ -128,7 +128,7 @@ start_agent(){
 	chmod 600 "$TMPFILE"
 	config_template "$JR_ROOT/res/templates/agent.conf.json" > "$TMPFILE"
 
-	(exec node "${JR_ROOT}/res/js/agent.js" >> "${JR_TMPDIR}/agent.log" 2>&1 < "$TMPFILE" & )
+	(exec "${JR_NODEJS}" "${JR_ROOT}/res/js/agent.js" >> "${JR_TMPDIR}/agent.log" 2>&1 < "$TMPFILE" & )
     rm -f "$TMPFILE"
 
 	wait_for_pid start "$JR_PID_AGENT" || jr_fail "Could not start agent."
@@ -181,16 +181,24 @@ export JR_ROOT
 #
 # detect php-fpm
 #
-for v in 7.0 7.1 7.2 7.3 7.4 8.0 8.1;do
+for v in 7.0 7.1 7.2 7.3 7.4 8.0 8.1 8.2 8.3;do
 	[ -z "$JR_PHPFPM" ] && JR_PHPFPM=`PATH="/usr/sbin:$PATH" which "php-fpm$v" ` 
 done
 [ -z "$JR_PHPFPM" ] && jr_fail "Could not detect path to php-fpm binary. Set JR_PHPFPM explicitly in .config."
+
+#
+# detect node js
+#
+
+[ -z "$JR_NODEJS" ] && JR_NODEJS=`PATH="/usr/sbin:$PATH" which node ` 
+[ -z "$JR_NODEJS" ] && jr_fail "Could not detect path to node js binary. Set JR_NODEJS explicitly in .config."
+
 
 
 #
 # read JR_SECRET from .security.json
 #
-[ -f "$JR_ROOT/.security.json" ] && JR_SECRET=$(cd $JR_ROOT/res/js;node -e "console.log(require('./auth.js').secret());")
+[ -f "$JR_ROOT/.security.json" ] && JR_SECRET=$(cd $JR_ROOT/res/js;"$JR_NODEJS" -e "console.log(require('./auth.js').secret());")
 [ -z "$JR_SECRET" ] && JR_SECRET="NOT SECRET"
 [ "x$JR_SECRET" == "xNOT SECRET" ] && jr_warn "The secret property is not set in .security.json. This is a security vulnerability. It is strictly recommended to set this property."
 

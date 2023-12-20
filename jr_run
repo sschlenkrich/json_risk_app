@@ -36,5 +36,5 @@ RUN_NAME=$(basename $1 '.json')
 # run
 #
 
-exec node "$JR_ROOT/res/js/run.js" "$JR_INSTANCE" "$RUN_NAME"
+exec "$JR_NODEJS" "$JR_ROOT/res/js/run.js" "$JR_INSTANCE" "$RUN_NAME"
 
