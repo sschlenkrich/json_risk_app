@@ -2,6 +2,7 @@
 *.*~
 .var
 .security.json
+.cluster.json
 jr.tar.gz
 jr.tar.bz2
 jr.zip
