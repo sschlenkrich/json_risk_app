@@ -3238,12 +3238,12 @@
 
             case "30g/360":
             case "30e/360 (isda)":
-            case "30e/360 german":
+            case "30/360 german":
                 return yf_30G360;
 
             default:
                 //fail if invalid string was supplied
-                throw new Error("year fraction factory: invalid input" + str);
+                throw new Error("year fraction factory: invalid input " + str);
         }
     };
 
@@ -3485,7 +3485,7 @@
         }
         //fallback
         if (sl === "") return is_holiday_default;
-        throw new Error("is_holiday_factory: calendar not found");
+        throw new Error("is_holiday_factory: calendar not found: " + sl);
 
     };
 
@@ -3507,6 +3507,7 @@
      * @public
      */
     library.adjust = function(dt, bdc, is_holiday_function) {
+        if (!(bdc instanceof String) && typeof(bdc) !== 'string') return dt; // no business day convention specified
         var s = (bdc || "u").charAt(0).toLowerCase();
         var adj = new Date(dt);
         if (s === "u") return adj; //unadjusted
@@ -3659,10 +3660,10 @@
 			var i=1, i_group=0, i_scen=0;
 			while (i<n){
 				i++;
-				if (i_scen<sg[i_group].length){
+				if (i_scen<sg[i_group].length-1){
 					// next scenario
 					i_scen++;
-				}else if(i_group<sg.length){
+				}else if(i_group<sg.length-1){
 					// next scenario group
 					i_scen=0;
 					i_group++;
