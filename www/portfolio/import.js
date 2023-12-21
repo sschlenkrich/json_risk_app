@@ -1,4 +1,4 @@
-var import_data_csv=function(fil, kind, sc){
+var import_data_csv=function(fil, sc){
         var pp_config={
 	        header: false,
         	dynamicTyping: true,
