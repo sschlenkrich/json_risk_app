@@ -69,7 +69,7 @@ Below, we describe the API endpoints for different purposes.
 | ----------- | ----------- | --------|--------|--------|
 | api/scenarios | GET |Returns a JSON list of scenario groups available| None |Must have read permissions
 | api/scenarios/{name} | GET |Returns the scenario group {name} in JSON format| None |Must have read permissions
-| api/scenarios/{name} | POST |Stores the uploaded JSON scenario group| Data is multipart/form-data encoded. Fields: `file` (a JSON file), `name` (the name of the scenario group, without .json extension) |Must have write permissions
+| api/scenarios/ | POST |Stores the uploaded JSON scenario group| Data is multipart/form-data encoded. Fields: `file` (a JSON file), `name` (the name of the scenario group, without .json extension) |Must have write permissions
 
 ## Time Series
 
