@@ -1,0 +1,59 @@
+#!/bin/bash
+
+JR_ROOT="$( cd -- "$(dirname "$0")/.." >/dev/null 2>&1 ; pwd -P )"
+
+source "$JR_ROOT/res/sh/config.sh"
+
+#
+# create test instance and test user
+#
+
+JR_INSTANCE="test-$RANDOM"
+while [ -d "$JR_DATADIR/$JR_INSTANCE" ];do
+	JR_INSTANCE="test-$RANDOM"
+done
+
+TEST_USER=test-user
+TEST_PASSWORD=test-password
+
+echo "$TEST_PASSWORD" | "$JR_ROOT/jr_user_add" "$JR_INSTANCE" "$TEST_USER"
+
+#
+# curl wrapper for convenience
+#
+
+jr_curl(){
+	URL="http://127.0.0.1:$JR_PORT/$1"
+	shift
+	TOKEN=$("$JR_NODEJS" "$JR_ROOT/res/js/token.js" "$JR_INSTANCE" rwx 1 )
+	curl -H "Authorization: Bearer $TOKEN" "$URL" "$@"
+}
+
+#
+# sucess and failure
+#
+
+jr_test_succeed(){
+	jr_log "Test $TEST_NAME was successful"
+}
+
+
+jr_test_fail(){
+	jr_fail "Test $TEST_NAME failed"
+}
+
+#
+# run tests
+#
+
+for script in "$JR_ROOT/test/backend/"*.sh;do
+	TEST_NAME=$(basename $script .sh)
+	jr_log "Running test $TEST_NAME"
+	source $script
+done
+
+#
+# delete test instance
+#
+
+rm -rf "$JR_DATADIR/$JR_INSTANCE"

@@ -1,0 +1,37 @@
+{
+ "valuation_date": "2023-12-31",
+ "curves": {
+  "CONST_CURVE": {
+   "type": "yield",
+   "times": [
+    1
+   ],
+   "zcs": [
+    0.0365
+   ],
+   "tags": [
+    "yield"
+   ]
+  }
+ },
+ "surfaces": {
+  "CONST_SURFACE": {
+   "type": "bachelier",
+   "expiries": [
+    1
+   ],
+   "terms": [
+    1
+   ],
+   "values": [
+    [
+     0
+    ]
+   ],
+   "tags": [
+    "swaption"
+   ]
+  }
+ },
+ "name": "BASE"
+}

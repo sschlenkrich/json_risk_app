@@ -1,0 +1,17 @@
+{
+ "portfolios": [
+  "2023-12-31/Portfolio"
+ ],
+ "params": [
+  "2023-12-31_BASE.json"
+ ],
+ "scenario_groups": [
+  "IR_Sensitivities",
+  "Vola_Sensitivities"
+ ],
+ "modules": [
+  "test_all"
+ ],
+ "valuation_date": "2023-12-31",
+ "name": "TEST_RUN"
+}
