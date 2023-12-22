@@ -37,8 +37,8 @@ Below, we describe the API endpoints for different purposes.
 
 | Endpoint      | Method | Description| Request Payload|Comment
 | ----------- | ----------- | --------|--------|--------|
-| api/user/token         | GET |Returns a token by setting an HTTP-only cookie| None |Request needs HTTP Authorization header or a Cookie header with the value `access_token` populated with a valid token.
-| api/user/token         | POST |Returns a token by setting an HTTP-only cookie `access_token`| sub and pwd fields, encoded as multipart/form-data|
+| api/user/token         | GET |Returns a token by setting an HTTP-only cookie `access_token`| None |Request needs HTTP Authorization header or a Cookie header with the value `access_token` populated with a valid token.
+| api/user/token         | POST |Returns a token by setting an HTTP-only cookie `access_token`| `sub` (user name), `ins` (instance name), and `pwd` (password) fields, encoded as multipart/form-data|
 | api/user/token/{LOGIN TOKEN}         | GET |Returns a token by setting an HTTP-only cookie|None |Passwordless login: URL needs a valid `<LOGIN TOKEN>` that was sent by E-Mail before.
 | api/user/password      | POST|Updates the user's password |pwd and pwd1 fields, encoded as multipart/form-data|Request needs HTTP Authorization header or a Cookie header with the value `access_token` populated with a valid token.
 | api/user/logout      | GET|Deletes the HTTP-only cookie `access_token`|None||
