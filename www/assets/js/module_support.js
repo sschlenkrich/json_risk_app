@@ -7,10 +7,10 @@ Brief support library for the JSON Risk module system
 (function(root){
     const _comp=function(a,b){
         if(Array.isArray(a.depends)){
-            if(a.depends.indexOf(b.name)) return 1;
+            if(a.depends.indexOf(b.name)>-1) return 1;
         }
         if(Array.isArray(b.depends)){
-            if(b.depends.indexOf(a.name)) return -1;
+            if(b.depends.indexOf(a.name)>-1) return -1;
         }
         return 0;
     }
