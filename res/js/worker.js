@@ -1,4 +1,5 @@
-const JsonRisk=require('../../www/assets/js/json_risk.js');
+//declare JsonRisk in the safe global worker scope, like in the web worker
+global.JsonRisk=require('../../www/assets/js/json_risk.js');
 const module_support=require('../../www/assets/js/module_support.js');
 const {parentPort} = require('worker_threads');
 
