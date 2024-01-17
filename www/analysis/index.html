@@ -14,7 +14,7 @@
 
     <!-- Custom styles for this template -->
     <link href="/assets/css/dashboard.css" rel="stylesheet">
-
+	<link href="/assets/css/modal.css" rel="stylesheet">
     <!-- JSONRisk JavaScript -->
     <script src="/assets/js/login.js"></script>
 
@@ -73,6 +73,9 @@
 						<select class="custom-select" ng-options="value for value in scenarios.available" ng-model="scenarios.selection" ng-change="load_scenarios()">
 							<option value="" selected>Choose Scenarios...</option>
 						</select>
+						<div class="input-group-append">
+							<button class="btn btn-outline-secondary" ng-click="edit_modules()">Edit modules</button>
+						</div>
 					</div>
 				</div>	
 			</div>
@@ -92,6 +95,55 @@
 				</button>
 			</div>
 
+
+			<!--
+
+				Column and grouping editor
+
+			-->
+			
+			<div class="modal jrmodal" ng-if="picker.enabled" tabindex="-1">
+			  <div class="modal-dialog modal-lg">
+				<div class="modal-content">
+				  <div class="modal-header">
+					<h5 class="modal-title">{{picker.title}}</h5>
+				  </div>
+				  <div class="modal-body">
+					<div class="row mb-1">
+						<div class="col-5">
+							<input ng-model="picker.filter" placeholder="filter" class="form-control"></select>
+						</div>
+					</div>
+					<div class="row mb-1">
+						<div class="col-5">
+							<select ng-model="picker.left" size="20" class="form-control" multiple>
+								<option ng-repeat="item in picker.available | filter:picker.filter" ng-disabled="picker.selection.indexOf(item)>=0">{{item}}</option>
+							</select>	
+						</div>
+						<div class="col-1">
+							<button ng-click="all_to_right()" class="btn btn-secondary btn-block p-0"><span data-feather="chevrons-right"></span></button>
+							<button ng-click="sel_to_right()" class="btn btn-secondary btn-block p-0"><span data-feather="chevron-right"></span></button>
+							<button ng-click="sel_to_left()" class="btn btn-secondary btn-block p-0"><span data-feather="chevron-left"></span></button>
+							<button ng-click="all_to_left()" class="btn btn-secondary btn-block p-0"><span data-feather="chevrons-left"></span></button>
+						</div>
+						<div class="col-5">
+							<select ng-model="picker.right" size="20" class="form-control" multiple>
+								<option ng-repeat="item in picker.selection" ng-disabled="modules.always.indexOf(item)>=0">{{item}}</option>
+							</select>
+						</div>
+						<div class="col-1">
+							<button ng-click="move_up()" class="btn btn-secondary btn-block p-0"><span data-feather="chevron-up"></span></button>
+							<button ng-click="move_down()" class="btn btn-secondary btn-block p-0"><span data-feather="chevron-down"></span></button>
+						</div>
+					</div>
+				  </div>
+				  <div class="modal-footer">
+					<button ng-click="cancel_edit_modules()" class="btn btn-secondary">Cancel</button>
+					<button ng-click="confirm_edit_modules()" class="btn btn-primary">Confirm</button>
+				  </div>
+				</div>
+			  </div>
+			</div>
 	
           <!--<canvas class="my-4" id="chart" width="900" height="380"></canvas>-->
 
@@ -326,6 +378,13 @@
 				</div> <!-- col -->
 			</div> <!-- row -->
 
+
+			<div class="row" ng-if="res.json">
+			  <div class="col-12">
+				<p class="lead">JSON output</p>
+				<pre><code id="code" class="prettyprint">{{res.json}}</code></pre>				
+			  </div> <!-- col -->
+			</div> <!-- row -->
 
 
         </main>

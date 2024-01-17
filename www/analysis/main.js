@@ -14,6 +14,18 @@ app.controller('main_ctrl', ['$scope', function($scope) { // Controller für ind
         selection: null,
 		loaded: []
     };
+    $scope.modules = {
+        available: null,
+        selection: null,
+		always: ['pricing', 'params_assignment', 'cashflows', 'cashflowtables']
+    };
+
+	$scope.picker={
+		enabled: false,
+		filter: "",
+		left: "",
+		right: ""
+	}
     
     $scope.res = null;
     $scope.errors = [];
@@ -70,6 +82,7 @@ app.controller('main_ctrl', ['$scope', function($scope) { // Controller für ind
 	}
 
 	$scope.fields=[
+		"adjust_accrual_periods",
 		"bdc",
 		"calendar",
 		"call_tenor",
@@ -107,6 +120,7 @@ app.controller('main_ctrl', ['$scope', function($scope) { // Controller für ind
 		"notional",
 		"opportunity_spread",
 		"quantity",
+		"quote",
 		"repay_amount",
 		"repay_first_date",
 		"repay_next_to_last_date",
@@ -145,9 +159,13 @@ app.controller('main_ctrl', ['$scope', function($scope) { // Controller für ind
         load_scenarios_from_server($scope); // function in import.js            
     }
 
+	load_modules_list($scope); // function in import.js
+
 	$scope.worker = new Worker('/assets/js/worker.js');
+
+	//send standard modules to worker
 	$scope.worker.postMessage({
-		modules: ['pricing','params_assignment','cashflowtables', 'cashflows']
+		modules: $scope.modules.always
 	});
 
 	function cashflow_sort(a,b){
@@ -160,6 +178,7 @@ app.controller('main_ctrl', ['$scope', function($scope) { // Controller für ind
 			if($scope.res.cashflow) $scope.res.cashflow=Object.entries($scope.res.cashflow).sort(cashflow_sort);
 			if($scope.res.interest_cashflow) $scope.res.interest_cashflow=Object.entries($scope.res.interest_cashflow).sort(cashflow_sort);
 			if($scope.res.principal_cashflow) $scope.res.principal_cashflow=Object.entries($scope.res.principal_cashflow).sort(cashflow_sort);
+			$scope.res.json=JSON.stringify(e.data.res, null, 2);
         } else if (e.data.warning) { //warning
             $scope.warnings.push(e.data.msg);
         } else { //error
@@ -187,7 +206,7 @@ app.controller('main_ctrl', ['$scope', function($scope) { // Controller für ind
 		}
 		//send instrument to worker
         $scope.worker.postMessage({
-                    instrument: $scope.instrument
+        	instrument: $scope.instrument
         });
     }
 
@@ -200,5 +219,80 @@ app.controller('main_ctrl', ['$scope', function($scope) { // Controller für ind
                     instrument: $scope.instrument
         });
     }
+
+	// MODULES EDITOR
+
+	$scope.sel_to_right=function(){
+		let active=$scope.picker.left;
+		while (active.length>0){
+			var item=active.shift();
+			$scope.picker.selection.push(item);
+		}
+	}
+
+	$scope.sel_to_left=function(){
+		let active=$scope.picker.right;
+		while (active.length>0){
+			var item=active.shift();
+			var idx=$scope.picker.selection.indexOf(item);
+			$scope.picker.selection.splice(idx,1);
+		}
+	}
+
+	$scope.all_to_right=function(){
+		$scope.picker.selection=JSON.parse(JSON.stringify($scope.picker.available));
+	}
+
+	$scope.all_to_left=function(){
+		$scope.picker.selection=JSON.parse(JSON.stringify($scope.modules.always));
+	}
+
+	$scope.move_up=function(){
+		let active=$scope.picker.right;
+		if (active.length===0) return;
+		let item=active[0];
+		let idx=$scope.picker.selection.indexOf(item);
+		if (0===idx) return;
+		$scope.picker.selection[idx]=$scope.picker.selection[idx-1];
+		$scope.picker.selection[idx-1]=item;
+	}
+
+
+	$scope.move_down=function(){
+		let active=$scope.picker.right;
+		if (active.length===0) return;
+		let item=active[0];
+		let idx=$scope.picker.selection.indexOf(item);
+		if ($scope.picker.selection.length-1===idx) return;
+		$scope.picker.selection[idx]=$scope.picker.selection[idx+1];
+		$scope.picker.selection[idx+1]=item;
+	}
+
+	$scope.edit_modules=function(){
+		let temp=JSON.parse(JSON.stringify($scope.modules.selection));
+		$scope.picker={
+			available: $scope.modules.available,
+			selection: temp,
+			enabled: true,
+			title: "Edit modules",
+			filter: "",
+			left: "",
+			right: ""
+		};
+	}	
+
+	$scope.cancel_edit_modules=function(){
+		$scope.picker.enabled=false;
+	}
+
+	$scope.confirm_edit_modules=function(){
+		$scope.modules.selection=$scope.picker.selection;
+		$scope.picker.enabled=false;
+		$scope.worker.postMessage({
+			modules: $scope.modules.selection	
+		});
+		$scope.calculate();
+	}
+
 
 }]);

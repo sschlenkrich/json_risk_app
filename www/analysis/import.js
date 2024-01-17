@@ -43,6 +43,30 @@ const load_params_list=function(sc){
 	req.send();	
 }
 
+var load_modules_list=function(sc){
+	var req=new XMLHttpRequest();	
+	req.addEventListener('load', function(evt){
+		if(req.status===200){
+			sc.modules.available=JSON.parse(req.responseText).res;
+			sc.modules.selection=[];			
+			// set default modules for convenience
+			for (let m of sc.modules.always){
+				if (sc.modules.available.indexOf(m)>=0) sc.modules.selection.push(m);
+			}
+            sc.$apply();
+		}else{
+			//silent error
+			console.log("Could not load list of available modules from server");
+		}
+	});	
+	req.addEventListener('error', function(evt){
+		//silent error
+		console.log("Could not load list of available modules from server");
+	});
+	req.open('GET', '/api/modules/');
+	req.send();	
+}
+
 const load_scenarios_from_server=function(sc){
 	if (!sc.scenarios.selection){
 		sc.scenarios.loaded=[];
