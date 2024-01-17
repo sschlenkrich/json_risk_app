@@ -83,8 +83,8 @@ function obligo(vd, cf){
 
 exports.simulation_once=function(){
     // brief credit portfolio model
-	const N=1000;
-    this.results.credit_loss=new Array(N);
+	const N=this.num_scen;
+    const credit_loss=new Array(N);
 
 	// get obligo and recovery
 	if (!this.results.principal_cashflow) return;
@@ -109,6 +109,7 @@ exports.simulation_once=function(){
 		loss=0;
 		r=w_global*random_global()+w_address*random_address();
 		if(JsonRisk.cndf(r)<pd) loss=this.results.obligo*(1-recovery); // address defaults if random toss has probability below PD
-		this.results.credit_loss[i]=loss;
+		credit_loss[i]=loss;
 	}
+	this.results.credit_loss=credit_loss;
 };
