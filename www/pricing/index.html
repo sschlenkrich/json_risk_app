@@ -58,6 +58,11 @@
                  						<span data-feather="zap"></span>Scenarios <span class="badge badge-primary">{{scenario_group.length}}</span>
                 					</a>
               					</li>
+              					<li class="nav-item" ng-class="{active: display.tab==='modules'}">
+                 					<a class="nav-link" id="pills-params-tab" href="#" ng-click="display.tab='modules'">
+                 						<span data-feather="code"></span>Modules <span class="badge badge-primary">{{available_modules.selection.length}}</span>
+                					</a>
+              					</li>
               					<li class="nav-item" ng-class="{active: display.tab==='results'}">           
                  					<a class="nav-link" id="pills-res-tab" href="#" ng-click="display.tab='results'">
                  						<span data-feather="bar-chart-2"></span>Results  <span class="badge badge-primary" ng-if="busy">running</span><span class="badge badge-primary" ng-if="!busy && res">completed</span>
@@ -438,7 +443,40 @@
 
 							</div>
 						</div>
-					</div>     			
+					</div>
+					<!-- MODULES -->
+					<div id="pills-modules" ng-if="display.tab=='modules'">
+
+        					<div class="row mb-1">
+								<div class="col-5">
+									<input ng-model="available_modules.filter" placeholder="filter" class="form-control"></select>
+								</div>
+							</div>
+							<div class="row mb-1">
+								<div class="col-5">
+									<select ng-model="available_modules.select_left" size="20" class="form-control" multiple>
+										<option ng-repeat="item in available_modules.list | filter:available_modules.filter" ng-disabled="available_modules.selection.indexOf(item)>=0">{{item}}</option>
+									</select>	
+								</div>
+								<div class="col-1">
+									<button ng-click="all_to_right()" class="btn btn-secondary btn-block p-0"><span data-feather="chevrons-right"></span></button>
+									<button ng-click="sel_to_right()" class="btn btn-secondary btn-block p-0"><span data-feather="chevron-right"></span></button>
+									<button ng-click="sel_to_left()" class="btn btn-secondary btn-block p-0"><span data-feather="chevron-left"></span></button>
+									<button ng-click="all_to_left()" class="btn btn-secondary btn-block p-0"><span data-feather="chevrons-left"></span></button>
+								</div>
+								<div class="col-5">
+									<select ng-model="available_modules.select_right" size="20" class="form-control" multiple>
+										<option ng-repeat="item in available_modules.selection">{{item}}</option>
+									</select>
+								</div>
+								<div class="col-1">
+									<button ng-click="move_up()" class="btn btn-secondary btn-block p-0"><span data-feather="chevron-up"></span></button>
+									<button ng-click="move_down()" class="btn btn-secondary btn-block p-0"><span data-feather="chevron-down"></span></button>
+								</div>
+							</div>
+	
+					</div>
+     			
          		<!--RESULTS-->
           			<div id="pills-res" ng-show="display.tab=='results'">
             			<div class="alert alert-warning" role="alert" ng-if="portfolio===null">
@@ -457,7 +495,7 @@
                  			<h4 class="alert-heading" ng-if="!busy">Calculations completed for {{portfolio.length - analytics.error_count}} of {{portfolio.length}} instruments.</h4>
                   			<hr>
                   			<p ng-if="busy">{{portfolio.length-remaining}} of {{portfolio.length}} instruments ({{(remaining/portfolio.length*100) |number:0}}% remaining), Elapsed time: {{calctime | number:2}} seconds.</p>
-                  			<p ng-if="!busy">Present values for {{portfolio.length - analytics.error_count}} instruments were calculated in {{calctime | number:2}} seconds.</p>
+                  			<p ng-if="!busy">Calculations for {{portfolio.length - analytics.error_count}} instruments done in {{calctime | number:2}} seconds.</p>
                   			<p ng-if="analytics.error_count>0">Could not price {{analytics.error_count}} instruments due to errors. For more details, see errors box below.</p>
                   			<div class="btn-toolbar mb-2 mb-md-0">
                     			<div class="btn-group mr-2">

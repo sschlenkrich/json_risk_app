@@ -1,53 +1,6 @@
 var app = angular.module('riskapp', []);
 
 
-/*
-associated scripts: index.html, import.js, export.js, worker.js
-
-structure of main.js
-
-I. functions called by index.html orderd by tabs (portfolio, parameters, results) and corresponding functions
-    i. tab Portfolio
-        $scope.delete_pf()                          delete portfolio, i.e. no instrument is displayed and $scope.portfolio is null         
-        $scope.update_portfolio_dates_list()	    	    
-	    $scope.load_portfolios()
-	    $scope.load_portfolio()               
-        $scope.export_portfolio                     export portfolio (csv or json)
-        $scope.view(item)                           display selected instrument (json format) 
-        $scope.create()                             add new instrument to portfolio (edit corresponding json object with all available fields)
-        $scope.edit(item)                           change selected instrument of portfolio (edit corresponding json object with all available fields)
-        $scope.remove(item)                         delete selected instrument from portfolio
-        $scope.add_as_new()                         add new instrument to portfolio (duplicate an instrument with new id)               
-        $scope.save()                               save changes after editing an instrument (create, edit, add_as_new)
-        $scope.cancel_editor()                      cancel changes as create, edit, add_as_new 
-        $scope.$watch
-        repl(key,value)                             Die Funtion wird aktuell nicht verwendet?!
-        is_unique_id(str)                           check if id of an instrument is unique (only used in $scope.add_as_new())
-    ii. tab Parameters
-	    $scope.update_params_list()                 load list of available curves (jsonrisk.de/jrparams/)
-	    $scope.load_params()                        download selected params from server (jsonrisk.de/jrparams/) 	    
-	    $scope.delete_params()                      delete params, i.e. no params are displayed and $scope.params is null)		   
-	    $scope.export_params()                      export params (json format)	    
-	    $scope.count_scenarios_curve(curve)         count scenarios given by params-curves (curves)    
-	    $scope.count_scenarios_surface(surface)     count scenarios given by params-surfaces (surfaces)  
-	    $scope.count_scenarios_scalar(scalar)       count scenarios given by params-scalars (scalar)
-	    $scope.remove_parameter(key,value,kind)	remove single parameters  
-    iii. tab results    
-        $scope.export_results()                     export results (csv)
-	    $scope.clear_errors()                       delete errors from calulation ($scope.errors is null)
-	    $scope.clear_errors_ids			delete error IDs from calculation ($scope.analytics.errors_ids is null)
-	    $scope.clear_warnings()                     delete warnings from calulation ($scope.warnings is null) 
-	    $scope.cancel()                             cancel calculation
-	    $scope.delete_results()                     delete results ($scope.res is null)
-        $scope.add_error(obj)                       add new error to $scope.errors  (only used in $scope.calculate()) 
-        $scope.add_warning(obj)                     add new warnings to $scope.warnings
-        $scope.calculate()                          calculate present values for given $scope.portfolio and $scope.params on local maschine 
-II. general functions
-        $scope.import_file                          import data (portfolio or params)
-*/
-
-
-
 app.controller('main_ctrl', ['$scope', function($scope) { // Controller für index.html
 
 
@@ -69,9 +22,16 @@ app.controller('main_ctrl', ['$scope', function($scope) { // Controller für ind
         list: null,
         selection: null
     };
-    $scope.available_subportfolios = {
+  //  $scope.available_subportfolios = {
+    //    list: null,
+      //  selection: null
+    //};
+    $scope.available_modules = {
         list: null,
-        selection: null
+        selection: null,
+		filter: "",
+		select_left: "",
+		select_right: ""
     };
     $scope.display = {
         tab: 'portfolio',
@@ -118,6 +78,8 @@ app.controller('main_ctrl', ['$scope', function($scope) { // Controller für ind
     $scope.load_portfolio = function() {
         load_portfolios_from_server($scope); // function in import.js            
     }
+
+	load_modules_list($scope);
 
     $scope.export_portfolio = function(format) {
         if (format === 'json') {
@@ -426,6 +388,55 @@ app.controller('main_ctrl', ['$scope', function($scope) { // Controller für ind
         $scope.display.scenario = null;
     }
 
+
+	// MODULES
+
+	$scope.sel_to_right=function(){
+		let active=$scope.available_modules.select_left;
+		while (active.length>0){
+			var item=active.shift();
+			$scope.available_modules.selection.push(item);
+		}
+	}
+
+	$scope.sel_to_left=function(){
+		let active=$scope.available_modules.select_right;
+		while (active.length>0){
+			var item=active.shift();
+			var idx=$scope.available_modules.selection.indexOf(item);
+			$scope.available_modules.selection.splice(idx,1);
+		}
+	}
+
+	$scope.all_to_right=function(){
+		$scope.available_modules.selection=JSON.parse(JSON.stringify($scope.available_modules.list));
+	}
+
+	$scope.all_to_left=function(){
+		$scope.available_modules.selection=[];
+	}
+
+	$scope.move_up=function(){
+		let active=$scope.available_modules.select_right;
+		if (active.length===0) return;
+		let item=active[0];
+		let idx=$scope.available_modules.selection.indexOf(item);
+		if (0===idx) return;
+		$scope.available_modules.selection[idx]=$scope.available_modules.selection[idx-1];
+		$scope.available_modules.selection[idx-1]=item;
+	}
+
+
+	$scope.move_down=function(){
+		let active=$scope.available_modules.select_right;
+		if (active.length===0) return;
+		let item=active[0];
+		let idx=$scope.available_modules.selection.indexOf(item);
+		if ($scope.available_modules.selection.length-1===idx) return;
+		$scope.available_modules.selection[idx]=$scope.available_modules.selection[idx+1];
+		$scope.available_modules.selection[idx+1]=item;
+	}
+
     /*  I.ii. tab results  */
     $scope.open_report = function() {
         // prepare data as returned by results api
@@ -592,7 +603,7 @@ app.controller('main_ctrl', ['$scope', function($scope) { // Controller für ind
             //send params to worker
             wrk[i].postMessage({
                 params: params,
-				modules: ['pricing','params_assignment','common_attributes']
+				modules: $scope.available_modules.selection
             });
 
             //post initial instrument

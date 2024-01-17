@@ -120,7 +120,7 @@ var load_portfolios_list=function(sc){
 
 var load_portfolios_from_server=function(sc){
 
-var pp_config={
+	var pp_config={
 	        header: true,
         	dynamicTyping: true,
 	        worker: false,
@@ -164,10 +164,29 @@ var pp_config={
 }
 
 
-
-
-
-
+var load_modules_list=function(sc){
+	var req=new XMLHttpRequest();	
+	req.addEventListener('load', function(evt){
+		if(req.status===200){
+			sc.available_modules.list=JSON.parse(req.responseText).res;
+			sc.available_modules.selection=[];			
+			// set default modules for convenience
+			for (let m of ['pricing', 'params_assignment', 'common_attributes']){
+				if (sc.available_modules.list.indexOf(m)>=0) sc.available_modules.selection.push(m);
+			}
+            sc.$apply();
+		}else{
+			//silent error
+			console.log("Could not load list of available modules from server");
+		}
+	});	
+	req.addEventListener('error', function(evt){
+		//silent error
+		console.log("Could not load list of available modules from server");
+	});
+	req.open('GET', '/api/modules/');
+	req.send();	
+}
 
 var import_data_csv=function(fil, kind, sc){
         var pp_config={
