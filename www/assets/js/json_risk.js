@@ -1,7 +1,7 @@
 /*!
 	JSON Risk
-	v0.0.0
-	https://github.com/tilwolff/json_risk
+	v1.0.0
+	https://github.com/wolffsiemssen/json_risk
 	License: MIT
 */
 
@@ -29,8 +29,6 @@
         JsonRisk.require_vd=function(){
 		if(!(JsonRisk.valuation_date instanceof Date)) throw new Error("JsonRisk: valuation_date must be set");
         };
-
-        
         
         return JsonRisk;
 
@@ -388,10 +386,10 @@
 					return get_rate(_times,_dfs,t);
 				};
 
-				// attach get_fwd_rate based on get_df
-				curve.get_fwd_rate=function(tstart,tend){
+				// attach get_fwd_amount based on get_df
+				curve.get_fwd_amount=function(tstart,tend){
 					if (tend-tstart<1/512) return 0.0;
-					return Math.pow(this.get_df(tend) / this.get_df(tstart),-1/(tend-tstart))-1;
+					return (this.get_df(tstart) / this.get_df(tend))-1;
 				};
 
 				// attach get_times closure in order to reobtain hidden times when needed
@@ -461,9 +459,9 @@
 			* @memberof library
 			* @public
 		*/  
-        library.get_fwd_rate=function(curve,tstart,tend){
-			if (curve.get_fwd_rate instanceof Function) return curve.get_fwd_rate(tstart,tend);
-			return library.get_safe_curve(curve).get_fwd_rate(tstart,tend);
+        library.get_fwd_amount=function(curve,tstart,tend){
+			if (curve.get_fwd_amount instanceof Function) return curve.get_fwd_amount(tstart,tend);
+			return library.get_safe_curve(curve).get_fwd_amount(tstart,tend);
         };
 
 
@@ -699,7 +697,7 @@
     var repay_tenor = library.get_safe_natural(instrument.repay_tenor);
     if (null === repay_tenor) repay_tenor = tenor;
 
-    var linear_amortization = instrument.linear_amortization || false;
+    var linear_amortization = library.get_safe_bool(instrument.linear_amortization);
 
     this.repay_amount = library.get_safe_number_vector(instrument.repay_amount) || [0]; //array valued
 
@@ -953,7 +951,6 @@
   library.fixed_income.prototype.finalize_cash_flows = function(fwd_curve, override_rate_or_spread) {
     library.require_vd(); //valuation date must be set
 
-    var default_yf = library.year_fraction_factory(null);
     var c = this.cash_flows;
     var n = c.date_accrual_start.length;
     var current_principal = new Array(n);
@@ -1024,10 +1021,10 @@
           //period beginning in the future, and start date is fixing date, use forward curve from now until next fixing date
           j = 0;
           while (!c.is_fixing_date[i + j] && i + j < c.is_fixing_date.length) j++;
-  
-          fwd_rate[i] = library.get_fwd_rate(fwd_curve,
-              c.t_accrual_start[i],
-              c.t_accrual_end[i + j]);
+  		  
+          fwd_rate[i] = library.get_fwd_amount(fwd_curve,c.t_accrual_start[i], c.t_accrual_end[i + j]);
+          fwd_rate[i] /= this.year_fraction_func(c.date_accrual_start[i], c.date_accrual_end[i + j]);
+
         } else {
           fwd_rate[i]=fwd_rate[i-1];
         }
@@ -1116,7 +1113,7 @@
 
   library.fixed_income.prototype.get_cash_flows = function(fwd_curve) {
     if (this.is_float) {
-      if (typeof fwd_curve !== 'object' || fwd_curve === null) throw new Error("fixed_income.get_cash_flows: Must provide forward curve when evaluating floating rate interest stream");
+	  if (typeof fwd_curve !== 'object' || fwd_curve === null) throw new Error("fixed_income.get_cash_flows: Must provide forward curve when evaluating floating rate interest stream");
       return this.finalize_cash_flows(fwd_curve);
     }
     return this.cash_flows;
@@ -2004,6 +2001,9 @@
 		if(typeof b === 'boolean') return b;				
 		if(typeof b === 'number') return b!==0;
 		if(typeof b === 'string'){
+			var n=Number(b.trim()).valueOf();
+			if (0===n) return false;
+			if (!isNaN(n)) return true;
 			var s=b.trim().toLowerCase();
 			if(s==='true' || s==='yes' || s==='t' || s==='y') return true;
             return false;
@@ -2653,7 +2653,8 @@
                         effective_date: instrument.effective_date,
                         calendar: instrument.calendar,
                         bdc: instrument.bdc,
-                        dcc: instrument.dcc
+                        dcc: instrument.dcc,
+						adjust_accrual_periods: instrument.adjust_accrual_periods
                 });
                 
                 //the floating rate leg of the swap
@@ -2667,7 +2668,8 @@
                         calendar: instrument.calendar,
                         bdc: instrument.float_bdc,
                         dcc: instrument.float_dcc,
-                        float_current_rate: instrument.float_current_rate
+                        float_current_rate: instrument.float_current_rate,
+						adjust_accrual_periods: instrument.adjust_accrual_periods
                 });
         };
  		/**
@@ -2761,23 +2763,24 @@
                         throw new Error("swaption: must provide valid first_exercise_date date.");
 
                 //underlying swap object
-		this.swap=new library.swap({
-			is_payer: instrument.is_payer,
-                        notional: instrument.notional,
-			effective_date: this.first_exercise_date,
-                        maturity: instrument.maturity,
-                        fixed_rate: instrument.fixed_rate,
-                        tenor: instrument.tenor,
-                        calendar: instrument.calendar,
-                        bdc: instrument.bdc,
-                        dcc: instrument.dcc,
-                        float_spread: instrument.float_spread,
-                        float_tenor: instrument.float_tenor,
-                        float_bdc: instrument.float_bdc,
-                        float_dcc: instrument.float_dcc,
-                        float_current_rate: instrument.float_current_rate
-		});
-        };
+				this.swap=new library.swap({
+					is_payer: instrument.is_payer,
+					notional: instrument.notional,
+					effective_date: this.first_exercise_date,
+					maturity: instrument.maturity,
+					fixed_rate: instrument.fixed_rate,
+					tenor: instrument.tenor,
+					calendar: instrument.calendar,
+					bdc: instrument.bdc,
+					dcc: instrument.dcc,
+					float_spread: instrument.float_spread,
+					float_tenor: instrument.float_tenor,
+					float_bdc: instrument.float_bdc,
+					float_dcc: instrument.float_dcc,
+					float_current_rate: instrument.float_current_rate,
+					adjust_accrual_periods: instrument.adjust_accrual_periods
+				});
+		};
 		/**
 		 	* calculates the present value for internal swaption (object)
 			* @param {object} disc_curve discount curve
@@ -3027,8 +3030,22 @@
         if (null === rr) throw new Error('date_str_to_time(str) - Invalid date string: ' + str);
         if (m < 0 || m > 11) throw new Error('date_str_to_time(str) - Invalid month in date string: ' + str);
         if (d < 0 || d > days_in_month(y, m)) throw new Error('date_str_to_time(str) - Invalid day in date string: ' + str);
-        return new Date(y, m, d);
+        return new Date(Date.UTC(y, m, d));
     };
+
+    /**
+     * constructs a JSON risk conformant date string YYYY-MM-DD from a javascript date object or another JSON risk conformant date string
+     * @param {date} date object
+     * @returns {string} date string
+     * @memberof library
+     * @public
+     */
+    library.date_to_date_str = function(d) {
+		var dobj=library.get_safe_date(d);
+		if(null===dobj) throw new Error("date_to_date_str: invalid input.");
+		return dobj.toISOString().slice(0,10);
+    };
+
 
 
     /**
@@ -3123,12 +3140,12 @@
      * @private
      */
     function yf_30U360(from, to) {
-        var y1=from.getFullYear();
-        var y2=to.getFullYear();
-        var m1=from.getMonth();
-        var m2=to.getMonth();
-        var d1=Math.min(from.getDate(), 30);
-        var d2=to.getDate();
+        var y1=from.getUTCFullYear();
+        var y2=to.getUTCFullYear();
+        var m1=from.getUTCMonth();
+        var m2=to.getUTCMonth();
+        var d1=Math.min(from.getUTCDate(), 30);
+        var d2=to.getUTCDate();
         if (29<d1 && 31==d2) d2=30;
         return ((y2-y1) * 360 + (m2-m1) * 30 + (d2-d1)) / 360;
     }
@@ -3143,12 +3160,12 @@
      * @private
      */
     function yf_30E360(from, to) {
-        var y1=from.getFullYear();
-        var y2=to.getFullYear();
-        var m1=from.getMonth();
-        var m2=to.getMonth();
-        var d1=Math.min(from.getDate(), 30);
-        var d2=Math.min(to.getDate(), 30);
+        var y1=from.getUTCFullYear();
+        var y2=to.getUTCFullYear();
+        var m1=from.getUTCMonth();
+        var m2=to.getUTCMonth();
+        var d1=Math.min(from.getUTCDate(), 30);
+        var d2=Math.min(to.getUTCDate(), 30);
         return ((y2-y1) * 360 + (m2-m1) * 30 + (d2-d1)) / 360;
     }
 
@@ -3162,12 +3179,12 @@
      * @private
      */
     function yf_30G360(from, to) {
-        var y1=from.getFullYear();
-        var y2=to.getFullYear();
-        var m1=from.getMonth();
-        var m2=to.getMonth();
-        var d1=Math.min(from.getDate(), 30);
-        var d2=Math.min(to.getDate(), 30);
+        var y1=from.getUTCFullYear();
+        var y2=to.getUTCFullYear();
+        var m1=from.getUTCMonth();
+        var m2=to.getUTCMonth();
+        var d1=Math.min(from.getUTCDate(), 30);
+        var d2=Math.min(to.getUTCDate(), 30);
         if(1==m1 && d1==days_in_month(y1,m1)) d1=30;
         if(1==m2 && d2==days_in_month(y2,m2)) d2=30;
         return ((y2-y1) * 360 + (m2-m1) * 30 + (d2-d1)) / 360;
@@ -3185,12 +3202,12 @@
     function yf_actact(from, to) {
         if (from - to === 0) return 0;
         if (from > to) return -yf_actact(to, from);
-        var yfrom = from.getFullYear();
-        var yto = to.getFullYear();
+        var yfrom = from.getUTCFullYear();
+        var yto = to.getUTCFullYear();
         if (yfrom === yto) return days_between(from, to) / ((is_leap_year(yfrom)) ? 366 : 365);
         var res = yto - yfrom - 1;
-        res += days_between(from, new Date(yfrom + 1, 0, 1)) / ((is_leap_year(yfrom)) ? 366 : 365);
-        res += days_between(new Date(yto, 0, 1), to) / ((is_leap_year(yto)) ? 366 : 365);
+        res += days_between(from, new Date(Date.UTC(yfrom + 1, 0, 1))) / ((is_leap_year(yfrom)) ? 366 : 365);
+        res += days_between(new Date(Date.UTC(yto, 0, 1)), to) / ((is_leap_year(yto)) ? 366 : 365);
         return res;
     }
 
@@ -3275,9 +3292,7 @@
      * @public
      */
     library.add_days = function(from, ndays) {
-        return new Date(from.getFullYear(),
-            from.getMonth(),
-            from.getDate() + ndays);
+        return new Date(from.getTime() + (ndays*dl));
     };
 
 
@@ -3291,8 +3306,8 @@
      * @public
      */
     library.add_months = function(from, nmonths, roll_day) {
-        var y = from.getFullYear(),
-            m = from.getMonth() + nmonths,
+        var y = from.getUTCFullYear(),
+            m = from.getUTCMonth() + nmonths,
             d;
         while (m >= 12) {
             m = m - 12;
@@ -3303,11 +3318,11 @@
             y = y - 1;
         }
         if (!roll_day) {
-            d = from.getDate();
+            d = from.getUTCDate();
         } else {
             d = roll_day;
         }
-        return new Date(y, m, Math.min(d, days_in_month(y, m)));
+        return new Date(Date.UTC(y, m, Math.min(d, days_in_month(y, m))));
     };
 
 
@@ -3356,7 +3371,7 @@
         var l = i - j,
             m = 3 + f((l + 40) / 44),
             d = l + 28 - 31 * f(m / 4);
-        return new Date(y, m - 1, d);
+        return new Date(Date.UTC(y, m - 1, d));
     }
 
 
@@ -3368,7 +3383,7 @@
      * @private
      */
     function is_holiday_default(dt) {
-        var wd = dt.getDay();
+        var wd = dt.getUTCDay();
         if (0 === wd) return true;
         if (6 === wd) return true;
         return false;
@@ -3385,12 +3400,12 @@
     function is_holiday_target(dt) {
         if (is_holiday_default(dt)) return true;
 
-        var d = dt.getDate();
-        var m = dt.getMonth();
+        var d = dt.getUTCDate();
+        var m = dt.getUTCMonth();
         if (1 === d && 0 === m) return true; //new year
         if (25 === d && 11 === m) return true; //christmas
 
-        var y = dt.getFullYear();
+        var y = dt.getUTCFullYear();
         if (1998 === y || 1999 === y || 2001 === y) {
             if (31 === d && 11 === m) return true; // December 31
         }
@@ -3513,12 +3528,12 @@
         if (s === "u") return adj; //unadjusted
 
         var m;
-        if (s === "m") m = adj.getMonth(); //save month for modified following
+        if (s === "m") m = adj.getUTCMonth(); //save month for modified following
         if (s === "m" || s === "f") {
             while (is_holiday_function(adj)) adj = library.add_days(adj, 1);
         }
         if (s === "f") return adj; //following
-        if (s === "m" && m === adj.getMonth()) return adj; //modified following, still in same month
+        if (s === "m" && m === adj.getUTCMonth()) return adj; //modified following, still in same month
         if (s === "m") adj = library.add_days(adj, -1); //modified following, in next month
         while (is_holiday_function(adj)) adj = library.add_days(adj, -1); //modified following or preceding
         return adj;
