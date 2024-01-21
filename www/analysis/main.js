@@ -175,10 +175,10 @@ app.controller('main_ctrl', ['$scope', function($scope) { // Controller für ind
     $scope.worker.onmessage = function(e) {
         if (e.data.res) { //success
             $scope.res=e.data.res;
+			$scope.res.json=JSON.stringify(e.data.res, null, 2);			
 			if($scope.res.cashflow) $scope.res.cashflow=Object.entries($scope.res.cashflow).sort(cashflow_sort);
 			if($scope.res.interest_cashflow) $scope.res.interest_cashflow=Object.entries($scope.res.interest_cashflow).sort(cashflow_sort);
 			if($scope.res.principal_cashflow) $scope.res.principal_cashflow=Object.entries($scope.res.principal_cashflow).sort(cashflow_sort);
-			$scope.res.json=JSON.stringify(e.data.res, null, 2);
         } else if (e.data.warning) { //warning
             $scope.warnings.push(e.data.msg);
         } else { //error
