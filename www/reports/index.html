@@ -90,7 +90,10 @@
 									<option value="" selected>Choose Result Set...</option>
 								</select>
 								<div class="input-group-append">
-									<button type="button" class="btn btn-sm btn-outline-secondary" ng-click="load_results()">Load</button>
+									<button type="button" class="btn btn-sm btn-outline-secondary" ng-click="load_results()">
+										Load
+										<span class="spinner-border spinner-border-sm" role="status" ng-if="display.loading"></span>
+									</button>
 								</div>
 							</div>
 						</div>

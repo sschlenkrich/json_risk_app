@@ -35,6 +35,10 @@ app.controller('main_ctrl', ['$scope', '$http', function($scope, $http) { // Con
 		separator: '\t'
 	}
 
+	$scope.display={
+		loading: false
+	}
+
 	$scope.results=null;
 	$scope.local_results=null;
 	$scope.report=null;
@@ -71,6 +75,7 @@ app.controller('main_ctrl', ['$scope', '$http', function($scope, $http) { // Con
 
 	$scope.load_results=function(){
 		if(!$scope.result_sets.selection) return 0;
+		$scope.display.loading=true;
 		$scope.report=null;
 		$scope.results=null;
 		let date=$scope.result_sets.selection.date;
@@ -82,8 +87,10 @@ app.controller('main_ctrl', ['$scope', '$http', function($scope, $http) { // Con
 		}).then(function success_callback(response) {
 			if ('object' === typeof response.data.res){
 				$scope.update_results(response.data.res);
+				$scope.display.loading=false;
 			}
 		  }, function error_callback(response) {
+			$scope.display.loading=false;
 			alert("Request failed");
 		});
 	};
