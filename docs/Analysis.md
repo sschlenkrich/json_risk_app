@@ -17,7 +17,7 @@ Then, there are two ways to edit instrument attributes within the JSON risk anal
   
   - Edit fields separately: Click `Edit fields` and edit each field separately. Here, a fixed set of fields is supported, including the [standard JSON risk instrument fields](https://jsonrisk.de/01_Documentation/02_Instrument_fields.html). Changes are effective immediately while typing.
  
-## Paramaters and scenarios <a name="params" style="padding-top: 50px"></a>
+## Parameters and scenarios <a name="params" style="padding-top: 50px"></a>
 
 In order for the analysis applet to calculate anything, a parameter set must be seleced. Optionally, you can select a scenario group. For managing parameter sets see [documentation of JSON risk app parameter management ](/docs/Parameters.md). For managing scenario groups, see [documentation of JSON risk app scenarios management ](/docs/Scenarios.md).
 
