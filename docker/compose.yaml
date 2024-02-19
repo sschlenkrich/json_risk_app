@@ -1,0 +1,9 @@
+services:
+  web:
+    build: .
+    image: jsonriskapp
+    ports:
+      - "8080:8080"
+    volumes:
+      # specify host json_risk data location here
+      - ../.var:/json_risk_app/.var
