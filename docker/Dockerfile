@@ -1,16 +1,22 @@
-from ubuntu:latest
+FROM ubuntu:jammy
+
+# install dependencies
 
 RUN apt-get update \
  && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends --no-install-suggests \
    php \
    php-fpm \
-   nodejs \
    nginx-light \
    wget \
+   curl \
    ca-certificates \
    vim \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
+
+# nodejs version from official repository is too old, use LTS version 20
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+ && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends --no-install-suggests nodejs
 
 # json_risk requires a user to run
 RUN groupadd -r -g 999 jsonrisk; \
