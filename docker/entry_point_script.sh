@@ -21,6 +21,8 @@ if [ -w /data ]; then # if data is writable, it has been mounted, otherwise it w
     for CONFIGFILE in /data/.config /data/.security.json /data/.cluster.json; do
         [ -f $CONFIGFILE ] && cp $CONFIGFILE /app
     done
+    # use data dir as instance dir per default
+    export JR_DATADIR=/data
 elif [ -d /app/.var ]; then # /app has been mounted, e.g. for development
     TARGET_UID=$(stat -c "%u" /app/.var)
     TARGET_GID=$(stat -c "%g" /app/.var)
