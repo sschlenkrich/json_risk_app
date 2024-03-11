@@ -1,0 +1,11 @@
+services:
+  dev-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: jsonriskapp-dev
+    ports:
+      - "8080:8080"
+    volumes:
+      # specify host json_risk data location here
+      - ../:/app
