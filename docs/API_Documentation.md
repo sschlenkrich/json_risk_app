@@ -6,11 +6,11 @@ The application features a straightforward API for many functional purposes. Whe
 
 ```
 
-curl -X POST -d 'ins=<instance>' -d 'sub=<username>' -d 'pwd=<password>' http://127.0.0.1:8080/api/user/token
+curl -X POST -i -d 'ins=<instance>' -d 'sub=<username>' -d 'pwd=<password>' http://127.0.0.1:8080/api/user/token
 
 ```
 
-API users then extract the token `<TOKEN>` from the response. All further requests need to have an authorization token attached, as the example below illustrates:
+API users then extract the token `<TOKEN>` from the response headers. All further requests need to have an authorization token attached, as the example below illustrates:
 
 ```
 
