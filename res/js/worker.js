@@ -10,6 +10,8 @@ parentPort.on('message', function(d) {
 	if (d.params){
 		try{
 			JsonRisk.store_params(d.params);
+			// set valuation date which is already sanitized during storage
+            JsonRisk.valuation_date=JsonRisk.get_params().valuation_date;
             modules=(d.params.modules || []).map((m) => {
                 return module_support.from_base64url(m.source, m.name);
             });

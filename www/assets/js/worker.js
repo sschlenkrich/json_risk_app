@@ -11,6 +11,8 @@ onmessage = function(e) {
 	if (d.params){
 		try{
 			JsonRisk.store_params(d.params);
+            // set valuation date which is already sanitized during storage
+            JsonRisk.valuation_date=JsonRisk.get_params().valuation_date;
 			has_params=true;
 		}catch(ex){
 			postMessage({error: true, msg: ex.message});
