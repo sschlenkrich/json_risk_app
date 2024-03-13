@@ -19,6 +19,8 @@
 		<script src="/assets/js/papaparse.min.js"></script>	
 		<!-- JSON risk -->
 		<script src="/assets/js/json_risk.js"></script>	
+		<!-- Scenario generator -->
+		<script src="/assets/js/scenario_generator.js"></script>	
 		<!-- JSONRisk JavaScript -->
 		<script src="/assets/js/login.js"></script>
   	</head>
@@ -54,13 +56,18 @@
                 					</a>
               					</li>
               					<li class="nav-item">
-                 					<a class="nav-link" id="pills-scenarios-tab" href="#" ng-click="import_file('json', 'scenarios')">
+                 					<a class="nav-link" id="pills-scenarios-tab" href="#" ng-click="import_file()">
                  						<span data-feather="download"></span>Import JSON
                 					</a>
 								</li>
               					<li class="nav-item">
                  					<a class="nav-link" id="pills-scenarios-tab" href="#" ng-click="export_scenarios()">
                  						<span data-feather="upload"></span>Export JSON
+                					</a>
+              					</li>
+              					<li class="nav-item">
+                 					<a class="nav-link" id="pills-scenarios-tab" href="#" ng-click="display.popup='csv'">
+                 						<span data-feather="download"></span>Generate from CSV
                 					</a>
               					</li>
             				</ul>           
@@ -104,6 +111,74 @@
 								</div>
 							</div>	
                 		</div>
+          				<div class="alert alert-success" role="alert" ng-if="display.popup==='csv'">
+                            <form>
+                                <div class="form-group col-4">
+                                    <label for="csv_type">CSV contains</label>
+                                    <select id="csv_type" class="form-control" ng-model="generator.input_type">
+                                        <option value="scenarios" selected>Scenarios</option>
+                                        <option value="history">Historic values</option>
+                                    </select>
+                                    <small id="help_type" class="form-text text-muted">Choose if input data contains scenarios or historic values.</small>
+                                </div>
+                                
+                                <div class="form-group col-4">
+                                    <label for="csv_prefix">Prefix</label>
+                                    <input type="text" class="form-control" id="csv_prefix" ng-model="generator.prefix">
+                                    <small id="help_prefix" class="form-text text-muted">Prefix prepended to scenario names.</small>
+                                </div>
+                                
+                                <div class="form-group col-4">
+                                    <label for="csv_risk_factors">Risk Factors</label>
+                                    <p><span ng-repeat="rf in generator.risk_factors" class="badge badge-primary mr-1 px-1">{{rf}}</span><a href='#' ng-click="edit_risk_factors(generator)">Edit</a></p>
+                                    <small id="help_risk_factors" class="form-text text-muted">List of risk factors these scenarios apply to.</small>
+                                </div>
+                                
+                                <div class="form-group col-4">
+                                    <label for="csv_tags">Tags</label>
+                                    <p><span ng-repeat="rf in generator.tags" class="badge badge-primary mr-1 px-1">{{rf}}</span><a href='#' ng-click="edit_tags(generator)">Edit</a></p>
+                                    <small id="help_tags" class="form-text text-muted">List of tags these scenarios apply to.</small>
+                                </div>
+
+
+                                <div class="form-group col-4">
+                                    <label for="csv_model">Model</label>
+                                    <select id="csv_model" class="form-control" ng-model="generator.model">
+                                        <option selected>additive</option>
+                                        <option>multiplicative</option>
+                                        <option>absolute</option>
+                                    </select>
+                                    <small id="help_model" class="form-text text-muted">Select model for scenarios.</small>
+                                </div>
+
+                                <div class="form-group col-4">
+                                    <label for="csv_max_scenarios">Max Scenarios</label>
+                                    <input type="number" min="0" class="form-control" id="csv_max_scenarios" ng-model="generator.max_scenarios">
+                                    <small id="help_max_scenarios" class="form-text text-muted">Maximum number of scenarios to generate. Zero or empty indicates no limit.</small>
+                                </div>
+                                
+                                <div class="form-group col-4">
+                                    <label for="csv_existing">Existing Scenarios</label>
+                                    <select id="csv_existing" class="form-control" ng-model="generator.existing">
+                                        <option value="replace" selected>Replace existing scenarios</option>
+                                        <option value="merge">Merge into existing scenarios</option>
+                                        <option value="append">Append onto existing scenarios</option>
+                                    </select>
+                                    <small id="help_existing" class="form-text text-muted">Determines how existing scenarios are handled.</small>
+                                </div>
+                                
+                                <div class="form-group form-check col-4">
+                                    <input type="checkbox" class="form-check-input" id="csv_mirror" ng-model="generator.mirror">
+                                    <label class="form-check-label" for="csv_mirror">Apply mirror</label>
+                                    <small id="help_mirror" class="form-text text-muted">If checked, historic additive or multiplicative scenarios are mirrored.</small>
+                                </div>
+
+                                <button type="submit" class="btn btn-primary" ng-click="generate_from_csv()">Start</button>
+                                <button type="submit" class="btn btn-primary" ng-click="display.popup=null">Cancel</button>
+                            </form>
+                		</div>
+
+
 
 						<!-- Scenario set name -->
         				<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">

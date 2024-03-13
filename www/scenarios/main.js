@@ -13,6 +13,18 @@ app.controller('main_ctrl', ['$scope', function($scope) { // Controller für ind
 		rule: null
 	}
 	$scope.scenario_group=null;
+	
+	$scope.generator={
+	    prefix: '',
+        risk_factors: [],
+        risk_factor_name_from_csv: false,
+        tags: [],
+        model: 'additive',
+        input_type: 'scenarios',
+        max_scenarios: 0,
+        existing: 'replace',
+        mirror: false,
+	}
         
     $scope.update_scenarios_list=function(){ 
 	    load_scenarios_list($scope);  // function in import.js
@@ -205,24 +217,67 @@ app.controller('main_ctrl', ['$scope', function($scope) { // Controller für ind
 	}
 
 
-    /* II. general functions */
-	$scope.import_file=function(type, kind, url){
-
-        if (type==='csv'){
-		    if (url) return import_data(url, kind, $scope);
-		    var f = document.createElement('input');
-		    f.setAttribute('type', 'file');
-		    f.addEventListener('change', function(evt){import_data_csv(evt.target.files[0], kind, $scope);}, false);
-		    f.click();
-		    return 0;
-        }else if(type==='json'){
-            var uploadDatei;
-            var f = document.createElement('input');
-		    f.setAttribute('type', 'file');
-            f.addEventListener('change', function(evt){import_data_json(evt.target.files[0], $scope);}, false);		    
-		    f.click();
-            return 0; 
-        }
+    // import functions
+	$scope.import_file=function(){
+        var f = document.createElement('input');
+	    f.setAttribute('type', 'file');
+        f.addEventListener('change', function(evt){import_data_json(evt.target.files[0], $scope);}, false);		    
+	    f.click();
+        return 0; 
+    }
+    
+    const generate_from_csv_callback=function(fil, sc){
+        let gen=scenario_generator;
+    	fil.text().then(text => {
+    	    let max=parseInt(sc.generator.max_scenarios);
+    	    if (!isNaN(max)) max=(max>0) ? max : 0;
+    	    if(0===max) max=Number.POSITIVE_INFINITY;
+    	    
+            gen.prefix=sc.generator.prefix;
+            gen.risk_factors=sc.generator.risk_factors;
+            gen.risk_factor_name_from_csv=false;
+            gen.tags=sc.generator.tags;
+            gen.model=sc.generator.model;
+            gen.input_type=sc.generator.input_type;
+            gen.max_scenarios=max;
+            gen.mirror=sc.generator.mirror;
+            
+            let result=gen.scenarios_from_string(text);
+            
+            if (null===result){
+                alert(gen.error);
+                return null;
+            }
+            if('replace'===sc.generator.existing){
+                //replace current scenarios
+		        sc.scenario_group=result;
+		    }else if('merge' === sc.generator.existing){
+		        //merge into current scenarios if length is the same
+		        let g=sc.scenario_group.length;
+		        let r=result.length;
+		        if(g!==r){
+		            alert(`Cannot merge scenario rules from CSV into existing scenarios. Number of existing scenarios is ${g} and CSV contained ${r} rules.`);
+		            return null;
+		        }
+		        while(g>0){
+		            g--;
+		            sc.scenario_group[g].rules.push(result[g].rules[0]);
+		        }
+		    }else{
+		        //append onto current scenarios
+		        sc.scenario_group=sc.scenario_group.concat(result);
+		    }
+		    sc.display.popup=null;
+		    sc.$apply();
+	    });
+    }
+    
+    $scope.generate_from_csv=function(){
+        var f = document.createElement('input');
+	    f.setAttribute('type', 'file');
+        f.addEventListener('change', function(evt){generate_from_csv_callback(evt.target.files[0], $scope);}, false);		    
+	    f.click();
+        return 0;
     }           
     
 }]);
