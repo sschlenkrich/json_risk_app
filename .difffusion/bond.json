@@ -1,0 +1,23 @@
+{
+    "id": "0000000008",
+    "type": "bond",
+    "sub_portfolio": "Municipal loans - fix - Inst",
+    "notional": 60293.93,
+    "currency": "EUR",
+    "maturity": "29.02.2032",
+    "tenor": 1,
+    "fixed_rate": 0.03677,
+    "calendar": "TARGET",
+    "dcc": "Act/360",
+    "bdc": "following",
+    "effective_date": "2024-02-29",
+    "repay_tenor": 1,
+    "linear_amortization": false,
+    "interest_capitalization": false,
+    "repay_amount": 596.66,
+    "level_1": "Assets",
+    "level_2": "Receivables from credit institutions",
+    "level_3": "Municipal loans",
+    "level_3_german": "Kommunalkredite",
+    "rating": "AA"
+  }
