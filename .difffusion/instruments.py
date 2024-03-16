@@ -1,6 +1,5 @@
 import json
-import math
-import re
+import requests
 
 def parse_instrument(instrument, cash_flows):
     if instrument['type'] == 'bond':
@@ -9,7 +8,7 @@ def parse_instrument(instrument, cash_flows):
         cfs, notionals = parse_floater_cash_flows(instrument, cash_flows)
     #
     alias = 'leg/' + instrument['id']
-    curve_key = None   # default (ESTR) discounting
+    curve_key = ""   # default (ESTR) discounting
     fx_key = None  # default
     if instrument['currency'] != 'EUR':  # assume EUR is domestic and numeraire currency
         fx_key = instrument['currency'] + '-EUR'
@@ -142,3 +141,13 @@ if __name__ == '__main__':
     out_file_name = '.difffusion/instruments.json'
     with open(out_file_name, 'w', encoding='utf-8') as f:
         json.dump(res, f, ensure_ascii=False, indent=4)
+    #
+    resp = requests.get('http://localhost:2024/api/v1/info')
+    print(resp)
+    for obj in res:
+        resp = requests.post(
+            'http://localhost:2024/api/v1/ops',
+            headers={ 'alias' : obj['alias'], 'op' : 'BUILD' },
+            data=json.dumps(obj),
+            )
+        print(resp.json())
