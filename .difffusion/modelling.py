@@ -34,5 +34,3 @@ if __name__ == '__main__':
     with open(out_file_name, 'w', encoding='utf-8') as f:
         json.dump(resp.json(), f, ensure_ascii=False, indent=4)
     #
-
-    
