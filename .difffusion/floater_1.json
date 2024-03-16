@@ -1,0 +1,26 @@
+{
+    "id": "0000000028",
+    "type": "floater",
+    "sub_portfolio": "Municipal loans - float - Inst",
+    "notional": 92117.05,
+    "currency": "EUR",
+    "maturity": "29.03.2024",
+    "tenor": 12,
+    "float_current_rate": 0.02822,
+    "float_spread": 0.01,
+    "calendar": "TARGET",
+    "dcc": "Act/360",
+    "bdc": "following",
+    "float_dcc": "Act/360",
+    "float_bdc": "unadjusted",
+    "effective_date": "2024-02-29",
+    "repay_tenor": 6,
+    "linear_amortization": true,
+    "interest_capitalization": false,
+    "level_1": "Assets",
+    "level_2": "Receivables from credit institutions",
+    "level_3": "Municipal loans",
+    "level_3_german": "Kommunalkredite",
+    "rating": "A"
+  }
+  
