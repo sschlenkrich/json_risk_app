@@ -8,8 +8,8 @@ def parse_instrument(instrument, cash_flows):
         cfs, notionals = parse_floater_cash_flows(instrument, cash_flows)
     #
     alias = 'leg/' + instrument['id']
-    curve_key = ""   # default (ESTR) discounting
-    fx_key = None  # default
+    curve_key = instrument['currency']  # default (ESTR) discounting; this might not be correct
+    fx_key = "nothing"  # default
     if instrument['currency'] != 'EUR':  # assume EUR is domestic and numeraire currency
         fx_key = instrument['currency'] + '-EUR'
     payer_receiver = 1.0
@@ -100,7 +100,7 @@ def parse_floater_cash_flows(instrument, cash_flows):
                     'pay_time' : pay_time,
                     'year_fraction' : cash_flows['cashflowtable']['accrual_factor'][k],
                     'curve_key' : curve_key,
-                    'fixing_key' : None,  # unfortunately, we cannot model fixed SimpleRateCoupon's
+                    'fixing_key' : "nothing",  # unfortunately, we cannot model fixed SimpleRateCoupon's
                     'spread_rate' : instrument['float_spread'],
                 }
             cfs.append(cf)
