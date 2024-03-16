@@ -138,3 +138,7 @@ if __name__ == '__main__':
     #
     for r in res:
         print(r['alias'] + ', ' + r['typename'])
+    #
+    out_file_name = '.difffusion/instruments.json'
+    with open(out_file_name, 'w', encoding='utf-8') as f:
+        json.dump(res, f, ensure_ascii=False, indent=4)

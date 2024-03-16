@@ -178,3 +178,7 @@ if __name__ == '__main__':
         instrument = json.load(f)
     with open(cflow_file_name, "r") as f:
         cash_flows = json.load(f)
+    #
+    out_file_name = '.difffusion/parameters.json'
+    with open(out_file_name, 'w', encoding='utf-8') as f:
+        json.dump(res, f, ensure_ascii=False, indent=4)
