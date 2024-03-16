@@ -1,0 +1,44 @@
+{
+    "sim/G3-Sobol" : {
+        "typename" : "DiffFusion.Simulation",
+        "constructor" : "simple_simulation",
+        "model" : "{md/G3}",
+        "ch" : "{ch/STD}",
+        "times" : [ 0.00, 0.25, 0.50, 0.75, 1.00, 1.25, 1.50, 1.75, 2.0 ],
+        "n_paths" : 1024,
+        "kwargs" : {
+            "with_progress_bar" : "{true}",
+            "brownian_increments" : "{SobolBrownianIncrements}"
+        }
+    },
+    "path/G3" : {
+        "typename" : "DiffFusion.Path",
+        "constructor" : "path",
+        "sim" : "{sim/G3-Sobol}",
+        "ts" : [
+            "{yc/EUR_ESTR}",
+            "{yc/EUR_1M}",
+            "{yc/EUR_3M}",
+            "{yc/EUR_6M}",
+            "{yc/EUR_1Y}",
+            "{yc/USD_SOFR}",
+            "{yc/GBP_SONIA}",
+            "{pa/USD-EUR}",
+            "{pa/GBP-EUR}"
+        ],
+        "ctx" : "{ct/STD}",
+        "ip" : "{LinearPathInterpolation}"
+    },
+    "cube/all_legs" : {
+        "typename" : "DiffFusion.ScenarioCube",
+        "constructor" : "scenarios",
+        "legs" : [
+            "{leg/0000000008}",
+            "{leg/0000000028}",
+            "{leg/0000000030}"
+        ],
+        "times" : [ 0.00, 0.25, 0.50, 0.75, 1.00, 1.25, 1.50, 1.75, 2.0 ],
+        "path" : "{path/G3}",
+        "discount_curve_key" : "nothing"
+    }
+}
