@@ -1,7 +1,7 @@
 const fs = require('fs');
 const axios = require('axios');
 
-const modelling_file_name = '.difffusion/modelling.json';
+const modelling_file_name = '.difffusion/json/modelling.json';
 fs.readFile(modelling_file_name, 'utf-8', (err, data) => {
     if (err) {
         console.error(err);
@@ -25,7 +25,7 @@ fs.readFile(modelling_file_name, 'utf-8', (err, data) => {
     });
 });
 
-const simulation_file_name = '.difffusion/simulation.json';
+const simulation_file_name = '.difffusion/json/simulation.json';
 fs.readFile(simulation_file_name, 'utf-8', (err, data) => {
     if (err) {
         console.error(err);

@@ -119,20 +119,20 @@ function parse_floater_cash_flows(instrument, cash_flows) {
 }
 
 const res = [];
-const instr_file_name = '.difffusion/bond.json';
-const cflow_file_name = '.difffusion/bond_cash_flows.json';
+const instr_file_name = '.difffusion/json/bond.json';
+const cflow_file_name = '.difffusion/json/bond_cash_flows.json';
 const instrument = require(instr_file_name);
 const cash_flows = require(cflow_file_name);
 res.push(...parse_instrument(instrument, cash_flows));
 
-const instr_file_name = '.difffusion/floater_1.json';
-const cflow_file_name = '.difffusion/floater_1_cash_flows.json';
+const instr_file_name = '.difffusion/json/floater_1.json';
+const cflow_file_name = '.difffusion/json/floater_1_cash_flows.json';
 const instrument = require(instr_file_name);
 const cash_flows = require(cflow_file_name);
 res.push(...parse_instrument(instrument, cash_flows));
 
-const instr_file_name = '.difffusion/floater_2.json';
-const cflow_file_name = '.difffusion/floater_2_cash_flows.json';
+const instr_file_name = '.difffusion/json/floater_2.json';
+const cflow_file_name = '.difffusion/json/floater_2_cash_flows.json';
 const instrument = require(instr_file_name);
 const cash_flows = require(cflow_file_name);
 res.push(...parse_instrument(instrument, cash_flows));

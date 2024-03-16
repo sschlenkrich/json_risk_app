@@ -2,7 +2,7 @@ import json
 import requests
 
 if __name__ == '__main__':
-    modelling_file_name = '.difffusion/modelling.json'
+    modelling_file_name = '.difffusion/json/modelling.json'
     with open(modelling_file_name, "r") as f:
         data = json.load(f)
     # print(data)
@@ -14,7 +14,7 @@ if __name__ == '__main__':
             data=json.dumps(obj),
             )
         print(resp.json())
-    simulation_file_name = '.difffusion/simulation.json'
+    simulation_file_name = '.difffusion/json/simulation.json'
     with open(simulation_file_name, "r") as f:
         data = json.load(f)
     for key in data:

@@ -111,24 +111,24 @@ def parse_floater_cash_flows(instrument, cash_flows):
 
 if __name__ == '__main__':
     res = []
-    instr_file_name = '.difffusion/bond.json'
-    cflow_file_name = '.difffusion/bond_cash_flows.json'
+    instr_file_name = '.difffusion/json/bond.json'
+    cflow_file_name = '.difffusion/json/bond_cash_flows.json'
     with open(instr_file_name, "r") as f:
         instrument = json.load(f)
     with open(cflow_file_name, "r") as f:
         cash_flows = json.load(f)
     res += parse_instrument(instrument, cash_flows)
     #
-    instr_file_name = '.difffusion/floater_1.json'
-    cflow_file_name = '.difffusion/floater_1_cash_flows.json'
+    instr_file_name = '.difffusion/json/floater_1.json'
+    cflow_file_name = '.difffusion/json/floater_1_cash_flows.json'
     with open(instr_file_name, "r") as f:
         instrument = json.load(f)
     with open(cflow_file_name, "r") as f:
         cash_flows = json.load(f)
     res += parse_instrument(instrument, cash_flows)
     #
-    instr_file_name = '.difffusion/floater_2.json'
-    cflow_file_name = '.difffusion/floater_2_cash_flows.json'
+    instr_file_name = '.difffusion/json/floater_2.json'
+    cflow_file_name = '.difffusion/json/floater_2_cash_flows.json'
     with open(instr_file_name, "r") as f:
         instrument = json.load(f)
     with open(cflow_file_name, "r") as f:

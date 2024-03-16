@@ -229,12 +229,6 @@ const res = parse_params(null, data);
 for (let r of res) {
     console.log(r['alias'] + ', ' + r['typename']);
 }
-
-const instr_file_name = '.difffusion/bond.json';
-const cflow_file_name = '.difffusion/bond_cash_flows.json';
-const instrument = JSON.parse(fs.readFileSync(instr_file_name, 'utf-8'));
-const cash_flows = JSON.parse(fs.readFileSync(cflow_file_name, 'utf-8'));
-
 const out_file_name = '.difffusion/parameters.json';
 fs.writeFileSync(out_file_name, JSON.stringify(res, null, 4), 'utf-8');
 
