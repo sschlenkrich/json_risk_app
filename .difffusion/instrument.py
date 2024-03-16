@@ -4,10 +4,11 @@ import re
 
 def parse_instrument(instrument, cash_flows):
     if instrument['type'] == 'bond':
-        cfs = parse_bond(cash_flows)
+        cfs, notionals = parse_bond_cash_flows(instrument, cash_flows)
+    if instrument['type'] == 'floater':
+        cfs, notionals = parse_floater_cash_flows(instrument, cash_flows)
     #
     alias = 'leg/' + instrument['id']
-    notionals = [ 1.0 for cf in cash_flows ]
     curve_key = None   # default (ESTR) discounting
     fx_key = None  # default
     if instrument['currency'] != 'EUR':  # assume EUR is domestic and numeraire currency
@@ -25,19 +26,24 @@ def parse_instrument(instrument, cash_flows):
     }]
 
 
-def parse_bond(cash_flows):
+def parse_bond_cash_flows(instrument, cash_flows):
+    print('Parse bond...')
+    initial_notional = instrument['notional']
+    assert initial_notional > 0
     pay_times = cash_flows['cashflowtable']['t_pmt']
     amounts = cash_flows['cashflowtable']['pmt_total']
     cfs = []
+    notionals = []
     for pay_time, amount in zip(pay_times, amounts):
         if pay_time > 0:  # assume today's cash flows are gone already
             cf = {
                 'typename' : 'DiffFusion.FixedCashFlow',
                 'constructor' : 'FixedCashFlow',
                 'pay_time' : pay_time,
-                'amount' : amount,
+                'amount' : amount / initial_notional,
             }
             cfs.append(cf)
+            notionals.append(initial_notional)
     #
     return cfs
 
